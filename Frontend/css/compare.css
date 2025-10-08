@@ -1,0 +1,235 @@
+:root {
+  --accent: #178a48;
+  --muted: #9aa0a6;
+  --card-bg: #f6f8fb;
+  --panel-bg: #f5f7f8;
+}
+
+* {
+  box-sizing: border-box;
+}
+.compare-container {
+  max-width: 1200px;
+  margin: 48px auto;
+  padding: 0 12px 80px;
+  font-family: "Inter", "Roboto", sans-serif;
+}
+
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  position: relative;
+  margin-bottom: 28px;
+}
+.page-header h1 {
+  font-size: 20px;
+  margin: 6px 0 8px 0;
+  font-weight: 600;
+  color: #222;
+}
+
+.header-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+}
+.filter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: white;
+  border-radius: 6px;
+  padding: 6px 10px;
+  border: 1px solid #e6e9ee;
+}
+.filter label {
+  font-size: 14px;
+  color: var(--muted);
+}
+.filter select {
+  border: 0;
+  outline: none;
+  font-size: 14px;
+}
+
+.choose-cards {
+  display: flex;
+  gap: 22px;
+  margin-top: 22px;
+  margin-bottom: 28px;
+}
+.choose-card {
+  flex: 1;
+  min-height: 170px;
+  background: var(--card-bg);
+  border: 2px solid rgba(23, 138, 72, 0.16);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  position: relative;
+  transition: box-shadow 0.16s ease, transform 0.12s ease;
+}
+.choose-card:hover {
+  box-shadow: 0 6px 20px rgba(23, 138, 72, 0.12);
+  transform: translateY(-4px);
+}
+.choose-plus {
+  width: 74px;
+  height: 74px;
+  border-radius: 10px;
+  border: 2px dashed rgba(23, 138, 72, 0.22);
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  color: var(--accent);
+  cursor: pointer;
+}
+.choose-text {
+  margin-top: 12px;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.compare-tabs {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+  border-bottom: 1px solid #eceff2;
+  padding-bottom: 14px;
+  margin-bottom: 20px;
+  overflow-x: auto;
+}
+.tab {
+  background: transparent;
+  border: 0;
+  padding: 10px 8px;
+  font-size: 14px;
+  color: var(--muted);
+  cursor: pointer;
+  position: relative;
+  font-weight: 600;
+}
+.tab.active {
+  color: var(--accent);
+}
+.tab.active::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 3px;
+  background: var(--accent);
+  border-radius: 3px;
+}
+
+.accordion-list {
+  margin-top: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.accordion-item {
+  background: white;
+  border-radius: 6px;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.03);
+  overflow: hidden;
+  border: 1px solid #f0f3f5;
+}
+/* Accordion chevron "mở từ trong ra" effect */
+
+/* đảm bảo toggle là relative để ::after đặt đúng */
+.accordion-toggle {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* text trái, icon phải */
+  gap: 12px;
+  background: transparent;
+  border: none;
+  width: 100%;
+  padding: 12px 14px;
+  cursor: pointer;
+  text-align: left;
+  font-size: 15px;
+  color: inherit;
+}
+
+/* icon chevron riêng biệt để dễ animate */
+.accordion-toggle i {
+  display: inline-block; /* để transform hoạt động đúng */
+  position: relative; /* cao hơn ::after */
+  z-index: 2;
+  font-size: 0.95rem;
+  color: var(--muted-text, #9aa0a6); /* dùng biến nếu có */
+  transform-origin: center center; /* quay từ tâm icon */
+  transition: transform 280ms cubic-bezier(0.2, 0.9, 0.3, 1), color 200ms ease,
+    opacity 200ms ease;
+  opacity: 0.95;
+}
+
+/* vòng nền nhỏ nằm phía sau icon, phóng to từ tâm */
+.accordion-toggle::after {
+  content: "";
+  position: absolute;
+  right: 12px; /* canh đúng ngang với icon */
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(23, 138, 72, 0.09); /* màu xanh nhạt làm nền */
+  transform: scale(0);
+  transform-origin: center center;
+  transition: transform 320ms cubic-bezier(0.2, 0.9, 0.3, 1), opacity 220ms ease;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0;
+}
+
+/* trạng thái mở: vòng nền phóng to, icon xoay 180° và nổi bật hơn */
+.accordion-toggle.open::after {
+  transform: scale(1);
+  opacity: 1;
+}
+
+.accordion-toggle.open i {
+  transform: rotate(180deg) scale(1.06);
+  color: var(--accent); /* đổi màu icon khi mở */
+  opacity: 1;
+}
+
+/* Một chút hover effect để UI sống động hơn */
+.accordion-toggle:hover i {
+  transform: scale(1.02); /* nhỏ, không thay đổi rotation */
+  color: var(--accent);
+}
+.accordion-panel {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.28s ease;
+  padding: 0 20px;
+  background: var(--panel-bg);
+  border-top: 1px solid #eef1f3;
+}
+.accordion-panel .panel-text {
+  padding: 18px 0;
+  color: #5a6167;
+  margin: 0;
+}
+
+/* responsive */
+@media (max-width: 960px) {
+  .container {
+    max-width: calc(100% - 24px);
+  }
+  .page-header h1 {
+    font-size: 32px;
+  }
+  .choose-cards {
+    flex-direction: column;
+  }
+}
