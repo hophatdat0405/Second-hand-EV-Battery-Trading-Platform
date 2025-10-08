@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="vi" class="scroll-smooth">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Hồ sơ - Second-hand EV</title>
+    <!-- Font Awesome -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    />
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/css/account.css" />
+    <link rel="stylesheet" href="/css/navbar.css" />
+  </head>
+  <body class="bg-emerald-50 min-h-screen">
+    <header class="navbar">
+      <div class="container">
+        <a href="/index.html"
+          ><div class="logo">
+            <span class="logo-icon">EV</span>
+            <span class="logo-text">Second-hand EV</span>
+          </div>
+        </a>
+        <nav class="nav-links">
+          <a href="#">Tìm kiếm</a>
+          <a href="#">Thể loại</a>
+          <a href="#">Thương hiệu</a>
+          <a href="/compare.html">So sánh</a>
+          <a href="#">Hỗ trợ</a>
+        </nav>
+        <div class="nav-actions">
+          <a href="/liked.html" class="nav-icon"
+            ><i class="far fa-heart"></i
+          ></a>
+          <a href="#" class="nav-icon"><i class="far fa-bell"></i></a>
+          <a href="/login.html" class="btn btn-secondary">ĐĂNG NHẬP</a>
+          <a href="/profile.html" class="user-icon"
+            ><i class="far fa-user-circle"></i
+          ></a>
+        </div>
+      </div>
+    </header>
+
+    <main class="container mx-auto p-6 grid lg:grid-cols-3 gap-6">
+      <!-- Personal info -->
+      <section class="bg-white p-5 rounded-lg shadow">
+        <h3 class="font-bold mb-3 text-emerald-700">Thông tin cá nhân</h3>
+        <form id="profileForm" class="space-y-3">
+          <div>
+            <label class="block text-sm text-gray-600">Họ & tên</label
+            ><input id="pfName" class="w-full border rounded px-3 py-2" />
+          </div>
+          <div>
+            <label class="block text-sm text-gray-600">Email</label
+            ><input
+              id="pfEmail"
+              disabled
+              class="w-full border rounded px-3 py-2 bg-gray-50"
+            />
+          </div>
+          <div>
+            <label class="block text-sm text-gray-600">SĐT</label
+            ><input id="pfPhone" class="w-full border rounded px-3 py-2" />
+          </div>
+          <div>
+            <label class="block text-sm text-gray-600">Địa chỉ</label
+            ><input id="pfAddress" class="w-full border rounded px-3 py-2" />
+          </div>
+          <button type="submit" class="btn-primary px-4 py-2 rounded">
+            Lưu thông tin
+          </button>
+        </form>
+      </section>
+
+      <!-- Vehicles / Batteries -->
+      <section class="bg-white p-5 rounded-lg shadow lg:col-span-2">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="font-bold text-emerald-700">Xe / Pin</h3>
+          <button id="addItemBtn" class="px-3 py-1 border rounded">Thêm</button>
+        </div>
+
+        <!-- add form hidden -->
+        <div id="addForm" class="mb-4 hidden bg-emerald-50 p-3 rounded">
+          <div class="grid md:grid-cols-3 gap-3">
+            <input
+              id="itemTitle"
+              placeholder="Tên"
+              class="border rounded px-3 py-2"
+            />
+            <select id="itemType" class="border rounded px-3 py-2">
+              <option value="car">Xe</option>
+              <option value="battery">Pin</option>
+            </select>
+            <input
+              id="itemPrice"
+              placeholder="Giá (VND)"
+              class="border rounded px-3 py-2"
+            />
+            <input
+              id="itemYear"
+              placeholder="Năm"
+              class="border rounded px-3 py-2"
+            />
+            <input
+              id="itemKM"
+              placeholder="KM"
+              class="border rounded px-3 py-2"
+            />
+            <input
+              id="itemCondition"
+              placeholder="Tình trạng"
+              class="border rounded px-3 py-2"
+            />
+          </div>
+          <div class="mt-3">
+            <button id="saveItemBtn" class="btn-primary px-3 py-2 rounded">
+              Lưu
+            </button>
+            <button id="cancelItemBtn" class="px-3 py-2 ml-2 border rounded">
+              Hủy
+            </button>
+          </div>
+        </div>
+
+        <div id="itemsList" class="grid md:grid-cols-2 gap-3"></div>
+
+        <hr class="my-4" />
+        <h4 class="font-bold text-emerald-700 mb-2">Lịch sử giao dịch</h4>
+        <div id="txList" class="space-y-2"></div>
+      </section>
+    </main>
+    s
+    <script src="/js/profile.js" defer></script>
+    <script src="/js/auth.js" defer></script>
+    <script src="/js/ux.js" defer></script>
+    <script>
+      window.addEventListener("load", () => {
+        const navbar = document.querySelector(".navbar");
+
+        // Tạo khoảng trống cho body để navbar không bị che khuất
+        document.body.style.paddingTop = "120px"; // Điều chỉnh độ cao padding-top tùy thuộc vào chiều cao của navbar
+      });
+    </script>
+  </body>
+</html>

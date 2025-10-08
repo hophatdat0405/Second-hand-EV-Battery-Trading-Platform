@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="vi" class="scroll-smooth">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Đăng nhập - Second-hand EV</title>
+
+    <!-- Tailwind (dev) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- AOS / lucide nếu cần -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet" />
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Font Awesome -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    />
+
+    <!-- your css -->
+    <link rel="stylesheet" href="/css/account.css" />
+    <link rel="stylesheet" href="/css/navbar.css" />
+  </head>
+  <body class="bg-emerald-50 min-h-screen">
+    <header class="navbar">
+      <div class="container">
+        <a href="/index.html"
+          ><div class="logo">
+            <span class="logo-icon">EV</span>
+            <span class="logo-text">Second-hand EV</span>
+          </div>
+        </a>
+        <nav class="nav-links">
+          <a href="#">Tìm kiếm</a>
+          <a href="#">Thể loại</a>
+          <a href="#">Thương hiệu</a>
+          <a href="/compare.html">So sánh</a>
+          <a href="#">Hỗ trợ</a>
+        </nav>
+        <div class="nav-actions">
+          <a href="/liked.html" class="nav-icon"
+            ><i class="far fa-heart"></i
+          ></a>
+          <a href="#" class="nav-icon"><i class="far fa-bell"></i></a>
+          <a href="/login.html" class="btn btn-secondary">ĐĂNG NHẬP</a>
+          <a href="/profile.html" class="user-icon"
+            ><i class="far fa-user-circle"></i
+          ></a>
+        </div>
+      </div>
+    </header>
+
+    <main class="min-h-screen flex items-center justify-center px-4">
+      <div class="w-full max-w-6xl grid md:grid-cols-2 gap-8 items-center">
+        <!-- LEFT: decorative/marketing (visible on md+) -->
+        <aside
+          class="hidden md:flex flex-col gap-6 p-8 rounded-2xl bg-white shadow-lg"
+        >
+          <h1 class="text-3xl font-extrabold text-emerald-700">
+            Second-hand EV
+          </h1>
+          <p class="text-gray-600 max-w-sm">
+            Kết nối mua bán xe điện & pin cũ — an toàn, minh bạch và nhanh
+            chóng.
+          </p>
+
+          <ul class="space-y-3">
+            <li class="flex items-start gap-3">
+              <div
+                class="w-9 h-9 bg-emerald-600 text-white rounded-md flex items-center justify-center"
+              >
+                ✓
+              </div>
+              <div>
+                <div class="font-semibold">Kiểm tra kỹ thuật</div>
+                <div class="text-sm text-gray-500">
+                  Báo cáo pin & xe minh bạch.
+                </div>
+              </div>
+            </li>
+            <li class="flex items-start gap-3">
+              <div
+                class="w-9 h-9 bg-emerald-600 text-white rounded-md flex items-center justify-center"
+              >
+                ⚡
+              </div>
+              <div>
+                <div class="font-semibold">Giao dịch nhanh</div>
+                <div class="text-sm text-gray-500">
+                  Hỗ trợ đặt cọc và thanh toán an toàn.
+                </div>
+              </div>
+            </li>
+          </ul>
+
+          <div class="mt-auto">
+            <a
+              href="/register.html"
+              class="inline-block px-4 py-2 rounded bg-emerald-600 text-white font-medium shadow"
+              >Tạo tài khoản ngay</a
+            >
+          </div>
+        </aside>
+
+        <!-- RIGHT: login form -->
+        <section class="bg-white rounded-2xl shadow p-8">
+          <h2 class="text-2xl font-bold mb-4 text-emerald-800">Đăng nhập</h2>
+
+          <form id="loginForm" class="space-y-4">
+            <div>
+              <label class="block text-sm text-gray-700">Email hoặc SĐT</label>
+              <input
+                id="idOrPhone"
+                class="w-full border rounded px-3 py-2"
+                placeholder="Nhập email hoặc số điện thoại"
+                required
+              />
+            </div>
+
+            <div>
+              <label class="block text-sm text-gray-700">Mật khẩu</label>
+              <input
+                id="loginPass"
+                type="password"
+                class="w-full border rounded px-3 py-2"
+                placeholder="Mật khẩu"
+                required
+              />
+            </div>
+
+            <button type="submit" class="w-full py-2 rounded btn-primary">
+              Đăng nhập
+            </button>
+
+            <div class="text-center text-sm text-gray-500">
+              Hoặc đăng nhập bằng
+            </div>
+            <div class="flex gap-3 mt-2">
+              <button
+                id="googleLogin"
+                type="button"
+                class="flex-1 border rounded py-2"
+              >
+                Google
+              </button>
+              <button
+                id="fbLogin"
+                type="button"
+                class="flex-1 border rounded py-2"
+              >
+                Facebook
+              </button>
+            </div>
+
+            <p class="text-sm mt-3 text-gray-600">
+              Chưa có tài khoản?
+              <a href="/register.html" class="text-emerald-700 font-medium"
+                >Đăng ký</a
+              >
+            </p>
+          </form>
+        </section>
+      </div>
+    </main>
+
+    <!-- scripts -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+      AOS.init({ duration: 600, once: true });
+      lucide.createIcons();
+    </script>
+
+    <script src="/js/auth.js" defer></script>
+    <script src="/js/navbar.js" defer></script>
+    <script src="/js/ux.js" defer></script>
+  </body>
+</html>
