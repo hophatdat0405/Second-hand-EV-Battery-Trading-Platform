@@ -1,0 +1,191 @@
+/* ===== RESET & PAGE LAYOUT ===== */
+body {
+  margin: 0;
+  padding: 0;
+  background: #f4f4f4;
+
+  color: #000;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.page {
+  font-family: "Times New Roman", Times, serif !important;
+  width: 210mm;
+  min-height: 297mm;
+  background: #fff;
+  margin: 20px auto 5px auto;
+  padding: 25mm 20mm 20mm 25mm;
+  border: 1px solid #ccc;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
+  line-height: 1.5;
+  font-size: 14pt;
+}
+
+/* ===== HEADER ===== */
+.header {
+  text-align: center;
+  line-height: 1.3;
+  margin-bottom: 25px;
+}
+
+.header p {
+  margin: 0;
+  font-size: 16pt;
+  font-weight: bold;
+}
+
+.header hr {
+  width: 30%;
+  border: none;
+  border-top: 1px solid #000;
+  margin: 4px auto 15px auto;
+}
+
+.header .title {
+  font-size: 16pt;
+  font-weight: bold;
+  text-transform: uppercase;
+  margin-top: 0;
+  padding-bottom: 2px;
+}
+
+/* ===== CONTENT ===== */
+.section-title {
+  font-weight: bold;
+  margin-top: 15px;
+  margin-bottom: 5px;
+}
+
+.page p {
+  margin-top: 2px;
+  margin-bottom: 2px;
+}
+
+/* ===== AUTO-CĂN CHỮ KÝ VÀ DẤU MỘC ===== */
+.signature {
+  display: flex;
+  justify-content: space-between;
+  align-items: stretch; /* hai bên có cùng chiều cao */
+  margin-top: 60px;
+  margin-bottom: 40px;
+  line-height: 1.3;
+}
+
+/* Hai khối bên trái và phải có cùng chiều cao */
+.signature > div {
+  width: 48%;
+  text-align: center;
+  font-size: 14pt;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center; /* căn giữa dọc theo chiều cao thật */
+  position: relative;
+}
+
+/* BÊN BÁN (auto giữa theo Bên Mua) */
+.signature > div:first-child {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+/* BÊN MUA */
+.signature > div:last-child {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+/* ===== DẤU MỘC (kích thước thật, auto căn giữa) ===== */
+.seal {
+  width: 320px; /* ~5.3 cm thật khi in A4 */
+  height: auto;
+  display: block;
+  max-width: 90%;
+  margin: 0 auto;
+  filter: contrast(120%) brightness(95%)
+    drop-shadow(0 0 4px rgba(0, 0, 0, 0.25));
+  opacity: 0.95;
+  mix-blend-mode: multiply; /* giúp hoà màu dấu vào nền giấy PDF */
+}
+
+/* ===== KHUNG KÝ BÊN MUA ===== */
+.sign-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+/* Canvas chữ ký */
+#signCanvas {
+  border: 1px solid #555;
+  background: #fff;
+  border-radius: 6px;
+  width: 500px;
+  height: 200px;
+  box-sizing: border-box;
+}
+
+/* Nút xóa chữ ký */
+.clear-btn-wrapper {
+  margin-top: 10px;
+  text-align: center;
+  position: static;
+}
+
+button.ghost {
+  background: transparent;
+  border: 1px solid #dc3545;
+  color: #dc3545;
+  padding: 6px 14px;
+  border-radius: 5px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+button.ghost:hover {
+  background: #dc3545;
+  color: #fff;
+}
+
+/* ===== NGÀY KÝ ===== */
+.signed-date {
+  text-align: right;
+  font-size: 14pt;
+  font-style: italic;
+  margin-top: 5px;
+  margin-right: 0;
+}
+
+/* ===== TOOLBAR ===== */
+.toolbar {
+  text-align: center;
+  margin-top: 20px;
+}
+
+.toolbar button {
+  background: #16a34a;
+  border: none;
+  color: #fff;
+  padding: 10px 25px;
+  border-radius: 6px;
+  font-weight: bold;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.toolbar button:hover {
+  background: #15803d;
+}
