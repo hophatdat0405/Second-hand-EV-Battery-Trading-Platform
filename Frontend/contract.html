@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <title>HỢP ĐỒNG MUA BÁN XE Ô TÔ</title>
+
+    <link rel="stylesheet" href="/css/navbar.css" />
+    <link rel="stylesheet" href="css/contract.css" />
+    <!-- Font Awesome -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    />
+    <!-- Thư viện export PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  </head>
+
+  <body>
+    <header class="navbar">
+      <div class="container">
+        <a href="/index.html"
+          ><div class="logo">
+            <span class="logo-icon">EV</span>
+            <span class="logo-text">Second-hand EV</span>
+          </div>
+        </a>
+        <nav class="nav-links">
+          <a href="#">Tìm kiếm</a>
+          <a href="#">Thể loại</a>
+          <a href="#">Thương hiệu</a>
+          <a href="/compare.html">So sánh</a>
+          <a href="#">Hỗ trợ</a>
+        </nav>
+        <div class="nav-actions">
+          <a href="/liked.html" class="nav-icon"
+            ><i class="far fa-heart"></i
+          ></a>
+          <a href="#" class="nav-icon"><i class="far fa-bell"></i></a>
+          <a href="/login.html" class="btn btn-secondary">ĐĂNG NHẬP</a>
+          <a href="/profile.html" class="user-icon"
+            ><i class="far fa-user-circle"></i
+          ></a>
+        </div>
+      </div>
+    </header>
+    <div class="page" id="contractPage">
+      <div class="header">
+        <p><b>CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</b></p>
+        <p><b>Độc lập - Tự do - Hạnh phúc</b></p>
+        <hr />
+        <h2 class="title">HỢP ĐỒNG MUA BÁN XE Ô TÔ</h2>
+      </div>
+
+      <p class="section-title">Bên bán (Bên A):</p>
+      <p>Công ty: Second-hand EV</p>
+      <p>Địa chỉ: Hà Nội</p>
+      <p>Đại diện: Nguyễn Văn Admin</p>
+
+      <p class="section-title">Bên mua (Bên B):</p>
+      <p>Họ tên: <span id="cName"></span></p>
+      <p>Số điện thoại: <span id="cPhone"></span></p>
+      <p>Email: <span id="cEmail"></span></p>
+      <p>Địa chỉ: <span id="cAddress"></span></p>
+
+      <p class="section-title">Điều 1. Đối tượng hợp đồng</p>
+      <p>
+        Xe ô tô: <span id="productName"></span> (Năm:
+        <span id="productYear"></span>)
+      </p>
+      <p>Số km đã đi: <span id="productKm"></span></p>
+
+      <p class="section-title">Điều 2. Giá trị hợp đồng</p>
+      <p>Giá trị xe: <span id="productPrice"></span></p>
+      <p>Phí dịch vụ: 5.000.000 đ</p>
+      <p>
+        <b>Tổng cộng: <span id="totalPrice"></span></b>
+      </p>
+      <p>Phương thức thanh toán: <span id="cMethod"></span></p>
+
+      <p class="section-title">Điều 3. Cam kết</p>
+      <p>
+        - Bên A cam kết bàn giao xe và giấy tờ liên quan trong vòng 07 ngày kể
+        từ ngày ký hợp đồng.
+      </p>
+      <p>- Bên B cam kết thanh toán đầy đủ và nhận xe theo thỏa thuận.</p>
+
+      <div class="signature">
+        <div>
+          <b>BÊN BÁN</b>
+          <p class="instruction">(ký, ghi rõ họ tên, đóng dấu)</p>
+          <img src="assets/seal.png" class="seal" alt="Con dấu" />
+        </div>
+
+        <div>
+          <b>BÊN MUA</b>
+          <p class="instruction">(ký, ghi rõ họ tên)</p>
+
+          <div class="sign-area">
+            <canvas id="signCanvas" width="500" height="200"></canvas>
+            <div class="clear-btn-wrapper">
+              <button class="ghost" onclick="clearSign()">🧹 Xóa chữ ký</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <p class="signed-date">Ngày ký: <span id="signDate"></span></p>
+    </div>
+
+    <div class="toolbar">
+      <button onclick="downloadContract()">⬇ Tải hợp đồng PDF</button>
+    </div>
+    <!-- Footer -->
+    <footer class="main-footer">
+      <div class="footer-top-info">
+        <div class="container info-grid">
+          <div class="info-item">
+            <i class="fas fa-shield-alt"></i>
+            <h4>An toàn tuyệt đối</h4>
+            <p>Giao dịch được bảo vệ 100%</p>
+          </div>
+          <div class="info-item">
+            <i class="fas fa-money-check-alt"></i>
+            <h4>Thanh toán linh hoạt</h4>
+            <p>Đa dạng phương thức thanh toán</p>
+          </div>
+          <div class="info-item">
+            <i class="fas fa-certificate"></i>
+            <h4>Chất lượng đảm bảo</h4>
+            <p>Xe và pin được kiểm định kỹ lưỡng</p>
+          </div>
+          <div class="info-item">
+            <i class="fas fa-headset"></i>
+            <h4>Hỗ trợ 24/7</h4>
+            <p>Tư vấn và hỗ trợ mọi lúc</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer-main-links">
+        <div class="container footer-grid">
+          <div class="footer-info">
+            <div class="logo">
+              <span class="logo-icon">EV</span>
+              <span class="logo-text">Second-hand EV</span>
+            </div>
+            <p>
+              Nền tảng giao dịch xe điện và pin cũ trên toàn Việt Nam. Chung tay
+              kết nối những người mua và người bán một cách an toàn, minh bạch
+              và hiệu quả.
+            </p>
+            <p><i class="fas fa-phone-alt"></i> 1900 2024</p>
+            <p><i class="fas fa-envelope"></i> support@secondhandev.com</p>
+            <p>
+              <i class="fas fa-map-marker-alt"></i> 123 Đường ABC, Quận XYZ, TP.
+              Hà Nội
+            </p>
+            <div class="social-icons">
+              <a href="#"><i class="fab fa-facebook-f"></i></a>
+              <a href="#"><i class="fab fa-twitter"></i></a>
+              <a href="#"><i class="fab fa-instagram"></i></a>
+              <a href="#"><i class="fab fa-linkedin-in"></i></a>
+            </div>
+          </div>
+
+          <div class="footer-links">
+            <h4>VỀ CHÚNG TÔI</h4>
+            <ul>
+              <li><a href="#">Giới thiệu</a></li>
+              <li><a href="#">Đội ngũ</a></li>
+              <li><a href="#">Tin tức</a></li>
+              <li><a href="#">Tuyển dụng</a></li>
+            </ul>
+          </div>
+          <div class="footer-links">
+            <h4>DỊCH VỤ</h4>
+            <ul>
+              <li><a href="#">Mua xe điện</a></li>
+              <li><a href="#">Bán xe điện</a></li>
+              <li><a href="#">Định giá xe</a></li>
+              <li><a href="#">Tư vấn chuyển giao</a></li>
+            </ul>
+          </div>
+          <div class="footer-links">
+            <h4>HỖ TRỢ</h4>
+            <ul>
+              <li><a href="#">Trung tâm giúp</a></li>
+              <li><a href="#">Hướng dẫn sử dụng</a></li>
+              <li><a href="#">Chính sách bảo hành</a></li>
+              <li><a href="#">Liên hệ hỗ trợ</a></li>
+            </ul>
+          </div>
+          <div class="footer-links">
+            <h4>PHÁP LÝ</h4>
+            <ul>
+              <li><a href="#">Điều khoản sử dụng</a></li>
+              <li><a href="#">Chính sách bán hàng</a></li>
+              <li><a href="#">Chính sách hoàn tiền</a></li>
+              <li><a href="#">Quy định giao dịch</a></li>
+              <li><a href="#">Báo cáo vi phạm</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <div class="container footer-bottom-content">
+          <div class="subscription-box">
+            <h4>Đăng ký nhận tin</h4>
+            <p>
+              Nhận thông tin về xe điện mới nhất, khuyến mãi đặc biệt và tin tức
+              thị trường.
+            </p>
+            <div class="subscribe-form">
+              <input type="email" placeholder="Nhập địa chỉ email của bạn" />
+              <button class="btn btn-primary">Đăng ký</button>
+            </div>
+          </div>
+          <div class="copyright-text">
+            <p>© 2023 Second EV Platform. Tất cả quyền được bảo lưu.</p>
+            <div class="small-links">
+              <a href="#">Sitemap</a>
+              <a href="#">FAQ</a>
+              <a href="#">Accessibility</a>
+              <a href="#">Cookie Settings</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </footer>
+    <script src="js/contract.js"></script>
+    <script src="js/compare.js"></script>
+  </body>
+</html>
