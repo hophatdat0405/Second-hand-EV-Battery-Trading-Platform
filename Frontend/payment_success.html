@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Thanh toán thành công - Second-hand EV</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet" />
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="css/pay.css" />
+    <link rel="stylesheet" href="css/payment.css" />
+    <link rel="stylesheet" href="/css/navbar.css" />
+    <!-- Font Awesome -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    />
+  </head>
+  <body class="bg-gray-50 text-gray-900">
+    <header class="navbar">
+      <div class="container">
+        <a href="/index.html"
+          ><div class="logo">
+            <span class="logo-icon">EV</span>
+            <span class="logo-text">Second-hand EV</span>
+          </div>
+        </a>
+        <nav class="nav-links">
+          <a href="#">Tìm kiếm</a>
+          <a href="#">Thể loại</a>
+          <a href="#">Thương hiệu</a>
+          <a href="/compare.html">So sánh</a>
+          <a href="#">Hỗ trợ</a>
+        </nav>
+        <div class="nav-actions">
+          <a href="/liked.html" class="nav-icon"
+            ><i class="far fa-heart"></i
+          ></a>
+          <a href="#" class="nav-icon"><i class="far fa-bell"></i></a>
+          <a href="/login.html" class="btn btn-secondary">ĐĂNG NHẬP</a>
+          <a href="/profile.html" class="user-icon"
+            ><i class="far fa-user-circle"></i
+          ></a>
+        </div>
+      </div>
+    </header>
+
+    <!-- Success Section -->
+    <section class="py-20">
+      <div class="container mx-auto px-4">
+        <div class="payment-card text-center" data-aos="zoom-in">
+          <i
+            data-lucide="check-circle"
+            class="w-16 h-16 text-green-600 mx-auto mb-4"
+          ></i>
+          <h2 class="text-3xl font-bold mb-4">Thanh toán thành công!</h2>
+          <p class="text-gray-600 mb-6">
+            Cảm ơn bạn đã đặt hàng qua <b>Second-hand EV</b>.<br />Thông tin đơn
+            hàng đã được ghi nhận.
+          </p>
+
+          <!-- Customer info -->
+          <div
+            id="customerInfo"
+            class="bg-gray-50 border rounded-lg p-6 text-left mb-6 hidden"
+          >
+            <h3 class="font-semibold mb-3">📋 Thông tin khách hàng</h3>
+            <p><b>Họ tên:</b> <span id="cName"></span></p>
+            <p><b>SĐT:</b> <span id="cPhone"></span></p>
+            <p><b>Email:</b> <span id="cEmail"></span></p>
+            <p><b>Địa chỉ:</b> <span id="cAddress"></span></p>
+            <p><b>Phương thức thanh toán:</b> <span id="cMethod"></span></p>
+            <p
+              id="extraNote"
+              class="mt-2 text-green-600 font-medium hidden"
+            ></p>
+          </div>
+
+          <a href="index.html" class="confirm-btn inline-block"
+            >⬅ Quay về Trang chủ</a
+          >
+        </div>
+      </div>
+    </section>
+    <!-- Footer -->
+    <footer class="main-footer">
+      <div class="footer-top-info">
+        <div class="container info-grid">
+          <div class="info-item">
+            <i class="fas fa-shield-alt"></i>
+            <h4>An toàn tuyệt đối</h4>
+            <p>Giao dịch được bảo vệ 100%</p>
+          </div>
+          <div class="info-item">
+            <i class="fas fa-money-check-alt"></i>
+            <h4>Thanh toán linh hoạt</h4>
+            <p>Đa dạng phương thức thanh toán</p>
+          </div>
+          <div class="info-item">
+            <i class="fas fa-certificate"></i>
+            <h4>Chất lượng đảm bảo</h4>
+            <p>Xe và pin được kiểm định kỹ lưỡng</p>
+          </div>
+          <div class="info-item">
+            <i class="fas fa-headset"></i>
+            <h4>Hỗ trợ 24/7</h4>
+            <p>Tư vấn và hỗ trợ mọi lúc</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer-main-links">
+        <div class="container footer-grid">
+          <div class="footer-info">
+            <div class="logo">
+              <span class="logo-icon">EV</span>
+              <span class="logo-text">Second-hand EV</span>
+            </div>
+            <p>
+              Nền tảng giao dịch xe điện và pin cũ trên toàn Việt Nam. Chung tay
+              kết nối những người mua và người bán một cách an toàn, minh bạch
+              và hiệu quả.
+            </p>
+            <p><i class="fas fa-phone-alt"></i> 1900 2024</p>
+            <p><i class="fas fa-envelope"></i> support@secondhandev.com</p>
+            <p>
+              <i class="fas fa-map-marker-alt"></i> 123 Đường ABC, Quận XYZ, TP.
+              Hà Nội
+            </p>
+            <div class="social-icons">
+              <a href="#"><i class="fab fa-facebook-f"></i></a>
+              <a href="#"><i class="fab fa-twitter"></i></a>
+              <a href="#"><i class="fab fa-instagram"></i></a>
+              <a href="#"><i class="fab fa-linkedin-in"></i></a>
+            </div>
+          </div>
+
+          <div class="footer-links">
+            <h4>VỀ CHÚNG TÔI</h4>
+            <ul>
+              <li><a href="#">Giới thiệu</a></li>
+              <li><a href="#">Đội ngũ</a></li>
+              <li><a href="#">Tin tức</a></li>
+              <li><a href="#">Tuyển dụng</a></li>
+            </ul>
+          </div>
+          <div class="footer-links">
+            <h4>DỊCH VỤ</h4>
+            <ul>
+              <li><a href="#">Mua xe điện</a></li>
+              <li><a href="#">Bán xe điện</a></li>
+              <li><a href="#">Định giá xe</a></li>
+              <li><a href="#">Tư vấn chuyển giao</a></li>
+            </ul>
+          </div>
+          <div class="footer-links">
+            <h4>HỖ TRỢ</h4>
+            <ul>
+              <li><a href="#">Trung tâm giúp</a></li>
+              <li><a href="#">Hướng dẫn sử dụng</a></li>
+              <li><a href="#">Chính sách bảo hành</a></li>
+              <li><a href="#">Liên hệ hỗ trợ</a></li>
+            </ul>
+          </div>
+          <div class="footer-links">
+            <h4>PHÁP LÝ</h4>
+            <ul>
+              <li><a href="#">Điều khoản sử dụng</a></li>
+              <li><a href="#">Chính sách bán hàng</a></li>
+              <li><a href="#">Chính sách hoàn tiền</a></li>
+              <li><a href="#">Quy định giao dịch</a></li>
+              <li><a href="#">Báo cáo vi phạm</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <div class="container footer-bottom-content">
+          <div class="subscription-box">
+            <h4>Đăng ký nhận tin</h4>
+            <p>
+              Nhận thông tin về xe điện mới nhất, khuyến mãi đặc biệt và tin tức
+              thị trường.
+            </p>
+            <div class="subscribe-form">
+              <input type="email" placeholder="Nhập địa chỉ email của bạn" />
+              <button class="btn btn-primary">Đăng ký</button>
+            </div>
+          </div>
+          <div class="copyright-text">
+            <p>© 2023 Second EV Platform. Tất cả quyền được bảo lưu.</p>
+            <div class="small-links">
+              <a href="#">Sitemap</a>
+              <a href="#">FAQ</a>
+              <a href="#">Accessibility</a>
+              <a href="#">Cookie Settings</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="js/payment_success.js"></script>
+    <script src="js/compare.js"></script>
+  </body>
+</html>
