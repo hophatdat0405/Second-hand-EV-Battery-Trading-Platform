@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Đã thích</title>
+    <link rel="stylesheet" href="/css/liked.css" />
+    <link rel="stylesheet" href="/css/navbar.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+
+  <body class="section-body-liked">
+    <header class="navbar">
+      <div class="container">
+        <a href="/index.html">
+          <div class="logo">
+            <span class="logo-icon">EV</span>
+            <span class="logo-text">Second-hand EV</span>
+          </div>
+        </a>
+        <nav class="nav-links">
+          <a href="#">Tìm kiếm</a>
+          <a href="#">Thể loại</a>
+          <a href="#">Thương hiệu</a>
+          <a href="/compare.html">So sánh</a>
+          <a href="#">Hỗ trợ</a>
+        </nav>
+        <div class="nav-actions">
+          <a href="/liked.html" class="nav-icon active"
+            ><i class="far fa-heart"></i
+          ></a>
+          <a href="#" class="nav-icon"><i class="far fa-bell"></i></a>
+          <a href="/login.html" class="btn btn-secondary">ĐĂNG NHẬP</a>
+          <a href="/profile.html" class="user-icon"
+            ><i class="far fa-user-circle"></i
+          ></a>
+        </div>
+      </div>
+    </header>
+
+    <main class="main-wrap">
+      <div class="saved-panel">
+        <h2 class="saved-title">
+          Tin đăng đã lưu <span class="muted">(<strong>4</strong> / 100)</span>
+        </h2>
+
+        <div class="saved-list">
+          <article class="saved-item">
+            <a class="thumb" href="#">
+              <img src="./images/product1.jpg" alt="Lead 125Fi" />
+            </a>
+            <div class="meta-wrap">
+              <h3 class="item-title">
+                <a href="#"
+                  >Lead 125Fi, 2019, chính chủ nữ dùng từ đầu, máy êm</a
+                >
+              </h3>
+              <div class="price-and-meta">
+                <div class="price">12.800.000 <span class="vnd">đ</span></div>
+                <div class="meta-row">
+                  <span class="meta-item"
+                    ><i class="fa-regular fa-user"></i> Cá Nhân</span
+                  >
+                  <span class="meta-sep">·</span>
+                  <span class="meta-item">3 Giờ Trước</span>
+                  <span class="meta-sep">·</span>
+                  <span class="meta-item">Quận Nam Từ Liêm</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="actions">
+              <button class="btn-like" aria-label="Bỏ thích">
+                <i class="fas fa-heart"></i>
+              </button>
+            </div>
+          </article>
+          <article class="saved-item">
+            <a class="thumb" href="#">
+              <img src="./images/product1.jpg" alt="Lead 125Fi" />
+            </a>
+            <div class="meta-wrap">
+              <h3 class="item-title">
+                <a href="#"
+                  >Lead 125Fi, 2019, chính chủ nữ dùng từ đầu, máy êm</a
+                >
+              </h3>
+              <div class="price-and-meta">
+                <div class="price">12.800.000 <span class="vnd">đ</span></div>
+                <div class="meta-row">
+                  <span class="meta-item"
+                    ><i class="fa-regular fa-user"></i> Cá Nhân</span
+                  >
+                  <span class="meta-sep">·</span>
+                  <span class="meta-item">3 Giờ Trước</span>
+                  <span class="meta-sep">·</span>
+                  <span class="meta-item">Quận Nam Từ Liêm</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="actions">
+              <button class="btn-like" aria-label="Bỏ thích">
+                <i class="fas fa-heart"></i>
+              </button>
+            </div>
+          </article>
+        </div>
+      </div>
+    </main>
+    <script src="/js/liked.js"></script>
+  </body>
+</html>
