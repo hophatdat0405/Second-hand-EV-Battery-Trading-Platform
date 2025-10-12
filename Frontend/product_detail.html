@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title id="pageTitle">Chi Tiết Sản Phẩm</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    />
+
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/product_detail.css" />
+    <link rel="stylesheet" href="/css/navbar.css" />
+    <style>
+      /* CSS ĐÃ CÓ */
+      .products-grid .product-card .btn-green-sm:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(23, 138, 72, 0.09);
+        background-color: color-mix(
+          in srgb,
+          var(--primary-color) 92%,
+          white 10%
+        ); /* hoặc giữ nguyên */
+      }
+      .products-grid {
+        padding-top: 40px;
+      }
+      /* CSS BỔ SUNG CHO NÚT ĐIỀU HƯỚNG VÀ CUỘN SẢN PHẨM LIÊN QUAN */
+
+      /* Nút Điều Hướng */
+      .nav-arrow-btn {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 10;
+        width: 48px; /* Kích thước lớn hơn */
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 9999px; /* Tròn */
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        color: #10b981; /* Màu xanh lá cây */
+        font-size: 18px; /* Icon to hơn */
+        transition: all 0.2s ease-in-out;
+        cursor: pointer;
+      }
+
+      .nav-arrow-btn:hover {
+        background-color: #ecfdf5; /* Hover nhẹ */
+        border-color: #10b981;
+        transform: translateY(-50%) scale(1.05);
+        box-shadow: 0 6px 10px rgba(16, 185, 129, 0.2);
+      }
+
+      /* Định vị riêng cho nút Trái và Phải */
+      .nav-arrow-btn.left-0 {
+        left: -24px; /* Đẩy một nửa ra ngoài để dễ click */
+      }
+
+      .nav-arrow-btn.right-0 {
+        right: -24px; /* Đẩy một nửa ra ngoài để dễ click */
+      }
+
+      /* Ẩn trên màn hình nhỏ nếu cần thiết */
+      @media (max-width: 1023px) {
+        .nav-arrow-btn {
+          display: none;
+        }
+      }
+
+      /* Bổ sung cho phép cuộn ngang trong products-grid */
+      .products-grid {
+        display: grid;
+        grid-template-columns: repeat(
+          4,
+          minmax(280px, 1fr)
+        ); /* Giữ nguyên grid ban đầu */
+        gap: 1.5rem; /* Gap mặc định */
+
+        /* Các thuộc tính quan trọng để bật cuộn ngang */
+        overflow-x: auto; /* Cho phép cuộn ngang */
+        white-space: nowrap; /* Ngăn các card xuống dòng */
+        padding-bottom: 1rem; /* Tạo khoảng trống nếu thanh cuộn hiện ra */
+
+        /* Giúp cuộn mượt mà hơn (tùy chọn) */
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      /* Đảm bảo product-card luôn đứng cạnh nhau */
+      .products-grid .product-card {
+        min-width: 280px; /* Đảm bảo card có kích thước tối thiểu để không bị kéo dãn */
+        scroll-snap-align: start;
+      }
+
+      /* Ẩn thanh cuộn trên một số trình duyệt để giao diện sạch sẽ hơn */
+      .products-grid::-webkit-scrollbar {
+        display: none;
+      }
+      .products-grid {
+        -ms-overflow-style: none; /* IE and Edge */
+        scrollbar-width: none; /* Firefox */
+      }
+    </style>
+  </head>
+  <body class="p-4 sm:p-8">
+    <header class="navbar">
+      <div class="container">
+        <a href="/index.html"
+          ><div class="logo">
+            <span class="logo-icon">EV</span>
+            <span class="logo-text">Second-hand EV</span>
+          </div>
+        </a>
+        <nav class="nav-links">
+          <a href="#">Tìm kiếm</a>
+          <a href="#">Thể loại</a>
+          <a href="#">Thương hiệu</a>
+          <a href="/compare.html">So sánh</a>
+          <a href="#">Hỗ trợ</a>
+        </nav>
+        <div class="nav-actions">
+          <a href="/liked.html" class="nav-icon"
+            ><i class="far fa-heart"></i
+          ></a>
+          <a href="#" class="nav-icon"><i class="far fa-bell"></i></a>
+          <a href="/login.html" class="btn btn-secondary">ĐĂNG NHẬP</a>
+          <a href="/profile.html" class="user-icon"
+            ><i class="far fa-user-circle"></i
+          ></a>
+        </div>
+      </div>
+    </header>
+
+    <div class="max-w-6xl mx-auto space-y-8">
+      <main class="bg-white rounded-xl p-4 sm:p-8 container-shadow">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div class="lg:col-span-2 space-y-4">
+            <div
+              id="mainImageContainer"
+              class="bg-gray-100 rounded-xl overflow-hidden aspect-video relative"
+            >
+              <img
+                id="mainProductImage"
+                src="https://placehold.co/1000x500/10b981/ffffff?text=Loading..."
+                alt="Ảnh sản phẩm"
+                class="w-full h-full object-cover transition duration-300 transform hover:scale-[1.02]"
+              />
+            </div>
+
+            <div id="thumbnailGallery" class="grid grid-cols-5 gap-2"></div>
+
+            <div class="pt-6 border-t mt-6">
+              <h2 class="text-2xl font-bold text-gray-800 mb-4">
+                Mô Tả Chi Tiết
+              </h2>
+              <div
+                id="productDescription"
+                class="text-gray-600 leading-relaxed whitespace-pre-wrap"
+              ></div>
+            </div>
+
+            <div class="pt-6 border-t mt-6">
+              <h2 class="text-2xl font-bold text-gray-800 mb-4">
+                Đánh Giá Sản Phẩm (25)
+              </h2>
+              <div class="space-y-4">
+                <div class="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                  <div class="flex items-center mb-2">
+                    <span class="text-yellow-400 mr-2">
+                      <i class="fas fa-star"></i>
+                      <i class="fas fa-star"></i>
+                      <i class="fas fa-star"></i>
+                      <i class="fas fa-star"></i>
+                      <i class="fas fa-star-half-alt"></i>
+                    </span>
+                    <p class="font-semibold text-gray-700">Nguyễn V.K.</p>
+                  </div>
+                  <p class="text-gray-600 italic">
+                    "Xe còn mới, giao dịch nhanh gọn. Chủ xe rất nhiệt tình. Rất
+                    hài lòng với sản phẩm!"
+                  </p>
+                  <p class="text-xs text-gray-400 mt-2">
+                    Đánh giá vào 20/09/2025
+                  </p>
+                </div>
+                <div class="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                  <div class="flex items-center mb-2">
+                    <span class="text-yellow-400 mr-2">
+                      <i class="fas fa-star"></i>
+                      <i class="fas fa-star"></i>
+                      <i class="fas fa-star"></i>
+                      <i class="fas fa-star"></i>
+                    </span>
+                    <p class="font-semibold text-gray-700">Trần T.A.</p>
+                  </div>
+                  <p class="text-gray-600 italic">
+                    "Pin hoạt động tốt, đúng mô tả. Hỗ trợ kỹ thuật rất chu
+                    đáo."
+                  </p>
+                  <p class="text-xs text-gray-400 mt-2">
+                    Đánh giá vào 15/09/2025
+                  </p>
+                </div>
+                <button
+                  class="w-full mt-4 py-2 px-4 rounded-lg font-semibold text-sm text-green-600 border border-green-600 hover:bg-green-50 transition"
+                >
+                  Xem tất cả đánh giá
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="lg:col-span-1 space-y-6">
+            <div class="pb-4 border-b">
+              <h1
+                id="productName"
+                class="text-3xl font-extrabold text-gray-800 mb-2"
+              ></h1>
+              <p id="productCategory" class="text-sm text-gray-500 mb-3"></p>
+              <p
+                id="productPrice"
+                class="text-4xl font-extrabold text-red-600 tracking-tight"
+              ></p>
+            </div>
+
+            <div
+              id="techSpecs"
+              class="bg-gray-50 p-4 rounded-xl space-y-2 border border-gray-200"
+            >
+              <h3 class="text-lg font-bold text-gray-700 border-b pb-2 mb-2">
+                Thông Số Kỹ Thuật
+              </h3>
+            </div>
+
+            <div
+              class="bg-white p-4 rounded-xl border border-gray-200 shadow-md"
+            >
+              <h3 class="text-lg font-bold text-gray-700 mb-3">
+                Thông Tin Liên Hệ
+              </h3>
+              <div class="flex items-center space-x-3 mb-4">
+                <div
+                  class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center text-white font-bold text-xl"
+                >
+                  A
+                </div>
+                <div>
+                  <p class="font-semibold text-gray-800">
+                    Người Bán: Nguyễn Văn A
+                  </p>
+                  <p id="productLocation" class="text-sm text-gray-500">
+                    Khu vực: Hà Nội
+                  </p>
+                </div>
+              </div>
+
+              <a
+                id="phoneContact"
+                href="#"
+                class="w-full flex items-center justify-center bg-green-600 text-white font-bold py-3 rounded-xl hover:bg-green-700 transition duration-300 mb-3 shadow-lg"
+              >
+                <svg
+                  class="w-5 h-5 mr-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
+                  ></path>
+                </svg>
+                <span id="contactPhoneNumber">Gọi Điện: 0912 xxx 456</span>
+              </a>
+
+              <a
+                href="#"
+                class="w-full flex items-center justify-center bg-red-600 text-white font-bold py-3 rounded-xl hover:bg-red-700 transition duration-300 shadow-lg text-lg"
+              >
+                <i class="fas fa-bolt mr-2"></i>
+                MUA NGAY
+              </a>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <section class="mt-12">
+        <h2
+          class="text-3xl font-extrabold text-gray-800 mb-6 border-l-4 border-green-500 pl-4"
+        >
+          Sản Phẩm Liên Quan
+        </h2>
+
+        <div class="relative">
+          <button
+            class="nav-arrow-btn left-0"
+            aria-label="Previous related product"
+          >
+            <i class="fas fa-chevron-left"></i>
+          </button>
+
+          <div class="products-grid" id="relatedProductsGrid">
+            <div class="product-card">
+              <div class="favorite-icon" title="Thêm vào yêu thích">
+                <i class="fas fa-heart"></i>
+              </div>
+              <span class="label hot-label">HOT SALE</span>
+              <div class="product-image-placeholder">
+                <i class="fas fa-car"></i>
+              </div>
+              <div class="product-info">
+                <h4>VinFast VF8 Plus</h4>
+                <p class="brand">VinFast</p>
+                <p class="price">1.2 tỷ</p>
+                <div class="details">
+                  <span><i class="fas fa-map-marker-alt"></i> Hà Nội</span>
+                  <span><i class="fas fa-calendar-alt"></i> 2023</span>
+                  <span><i class="fas fa-bolt"></i> 87.7 kWh</span>
+                  <span><i class="fas fa-road"></i> 12,000 km</span>
+                </div>
+                <div class="progress-bar-container">
+                  <span class="progress-text">Tốt 95%</span>
+                  <div class="progress-bar">
+                    <div class="progress" style="width: 95%"></div>
+                  </div>
+                </div>
+                <div class="product-actions">
+                  <a href="/product_detail.html" class="btn-green-sm">
+                    Xem chi tiết
+                  </a>
+
+                  <a href="/cart.html" class="contact-link">Mua ngay</a>
+                </div>
+              </div>
+            </div>
+            <div class="product-card">
+              <span class="label new-label">NEW</span>
+              <div class="product-image-placeholder">
+                <i class="fas fa-battery-three-quarters"></i>
+              </div>
+              <div class="product-info">
+                <h4>Pin Lithium-ion 100kWh</h4>
+                <p class="brand">CATL</p>
+                <p class="price">450 triệu</p>
+                <div class="details">
+                  <span><i class="fas fa-map-marker-alt"></i> Đà Nẵng</span>
+                  <span><i class="fas fa-calendar-alt"></i> 2023</span>
+                  <span><i class="fas fa-star"></i> 4.7</span>
+                  <span><i class="fas fa-bolt"></i> Mới 98%</span>
+                </div>
+                <div class="progress-bar-container">
+                  <span class="progress-text">Mới 98%</span>
+                  <div class="progress-bar">
+                    <div class="progress" style="width: 98%"></div>
+                  </div>
+                </div>
+                <div class="product-actions">
+                  <button class="btn-green-sm">Xem chi tiết</button>
+                  <a href="#" class="contact-link">Liên hệ</a>
+                </div>
+              </div>
+            </div>
+            <div class="product-card">
+              <div class="product-image-placeholder">
+                <i class="fas fa-car-battery"></i>
+              </div>
+              <div class="product-info">
+                <h4>BMW iX3</h4>
+                <p class="brand">BMW</p>
+                <p class="price">2.3 tỷ</p>
+                <div class="details">
+                  <span><i class="fas fa-map-marker-alt"></i> Hà Nội</span>
+                  <span><i class="fas fa-calendar-alt"></i> 2023</span>
+                  <span><i class="fas fa-bolt"></i> 80 kWh</span>
+                  <span><i class="fas fa-road"></i> 30,000 km</span>
+                </div>
+                <div class="progress-bar-container">
+                  <span class="progress-text">Tốt 96%</span>
+                  <div class="progress-bar">
+                    <div class="progress" style="width: 96%"></div>
+                  </div>
+                </div>
+                <div class="product-actions">
+                  <button class="btn-green-sm">Xem chi tiết</button>
+                  <a href="#" class="contact-link">Liên hệ</a>
+                </div>
+              </div>
+            </div>
+            <div class="product-card">
+              <span class="label hot-label">HOT</span>
+              <div class="product-image-placeholder">
+                <i class="fas fa-car"></i>
+              </div>
+              <div class="product-info">
+                <h4>Tesla Model 3</h4>
+                <p class="brand">Tesla</p>
+                <p class="price">1.8 tỷ</p>
+                <div class="details">
+                  <span><i class="fas fa-map-marker-alt"></i> TP.HCM</span>
+                  <span><i class="fas fa-calendar-alt"></i> 2022</span>
+                  <span><i class="fas fa-bolt"></i> 75 kWh</span>
+                  <span><i class="fas fa-road"></i> 25,000 km</span>
+                </div>
+                <div class="progress-bar-container">
+                  <span class="progress-text">Tốt 92%</span>
+                  <div class="progress-bar">
+                    <div class="progress" style="width: 92%"></div>
+                  </div>
+                </div>
+                <div class="product-actions">
+                  <button class="btn-green-sm">Xem chi tiết</button>
+                  <a href="#" class="contact-link">Liên hệ</a>
+                </div>
+              </div>
+            </div>
+          </div>
+          <button
+            class="nav-arrow-btn right-0"
+            aria-label="Next related product"
+          >
+            <i class="fas fa-chevron-right"></i>
+          </button>
+        </div>
+        <div class="text-center mt-8">
+          <a
+            href="/product-all.html"
+            class="py-3 px-8 rounded-full font-bold bg-gray-200 text-gray-700 hover:bg-gray-300 transition duration-300 border-2 border-transparent hover:border-gray-400"
+          >
+            <i class="fas fa-redo-alt mr-2"></i>
+            Xem Thêm
+          </a>
+        </div>
+      </section>
+    </div>
+    <footer class="main-footer">
+      <div class="footer-top-info">
+        <div class="container info-grid">
+          <div class="info-item">
+            <i class="fas fa-shield-alt"></i>
+            <h4>An toàn tuyệt đối</h4>
+            <p>Giao dịch được bảo vệ 100%</p>
+          </div>
+          <div class="info-item">
+            <i class="fas fa-money-check-alt"></i>
+            <h4>Thanh toán linh hoạt</h4>
+            <p>Đa dạng phương thức thanh toán</p>
+          </div>
+          <div class="info-item">
+            <i class="fas fa-certificate"></i>
+            <h4>Chất lượng đảm bảo</h4>
+            <p>Xe và pin được kiểm định kỹ lưỡng</p>
+          </div>
+          <div class="info-item">
+            <i class="fas fa-headset"></i>
+            <h4>Hỗ trợ 24/7</h4>
+            <p>Tư vấn và hỗ trợ mọi lúc</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer-main-links">
+        <div class="container footer-grid">
+          <div class="footer-info">
+            <div class="logo">
+              <span class="logo-icon">EV</span>
+              <span class="logo-text">Second-hand EV</span>
+            </div>
+            <p>
+              Nền tảng giao dịch xe điện và pin cũ trên toàn Việt Nam. Chung tay
+              kết nối những người mua và người bán một cách an toàn, minh bạch
+              và hiệu quả.
+            </p>
+            <p><i class="fas fa-phone-alt"></i> 1900 2024</p>
+            <p><i class="fas fa-envelope"></i> support@secondhandev.com</p>
+            <p>
+              <i class="fas fa-map-marker-alt"></i> 123 Đường ABC, Quận XYZ, TP.
+              Hà Nội
+            </p>
+            <div class="social-icons">
+              <a href="#"><i class="fab fa-facebook-f"></i></a>
+              <a href="#"><i class="fab fa-twitter"></i></a>
+              <a href="#"><i class="fab fa-instagram"></i></a>
+              <a href="#"><i class="fab fa-linkedin-in"></i></a>
+            </div>
+          </div>
+
+          <div class="footer-links">
+            <h4>VỀ CHÚNG TÔI</h4>
+            <ul>
+              <li><a href="#">Giới thiệu</a></li>
+              <li><a href="#">Đội ngũ</a></li>
+              <li><a href="#">Tin tức</a></li>
+              <li><a href="#">Tuyển dụng</a></li>
+            </ul>
+          </div>
+          <div class="footer-links">
+            <h4>DỊCH VỤ</h4>
+            <ul>
+              <li><a href="#">Mua xe điện</a></li>
+              <li><a href="#">Bán xe điện</a></li>
+              <li><a href="#">Định giá xe</a></li>
+              <li><a href="#">Tư vấn chuyển giao</a></li>
+            </ul>
+          </div>
+          <div class="footer-links">
+            <h4>HỖ TRỢ</h4>
+            <ul>
+              <li><a href="#">Trung tâm giúp</a></li>
+              <li><a href="#">Hướng dẫn sử dụng</a></li>
+              <li><a href="#">Chính sách bảo hành</a></li>
+              <li><a href="#">Liên hệ hỗ trợ</a></li>
+            </ul>
+          </div>
+          <div class="footer-links">
+            <h4>PHÁP LÝ</h4>
+            <ul>
+              <li><a href="#">Điều khoản sử dụng</a></li>
+              <li><a href="#">Chính sách bán hàng</a></li>
+              <li><a href="#">Chính sách hoàn tiền</a></li>
+              <li><a href="#">Quy định giao dịch</a></li>
+              <li><a href="#">Báo cáo vi phạm</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <div class="container footer-bottom-content">
+          <div class="subscription-box">
+            <h4>Đăng ký nhận tin</h4>
+            <p>
+              Nhận thông tin về xe điện mới nhất, khuyến mãi đặc biệt và tin tức
+              thị trường.
+            </p>
+            <div class="subscribe-form">
+              <input type="email" placeholder="Nhập địa chỉ email của bạn" />
+              <button class="btn btn-primary">Đăng ký</button>
+            </div>
+          </div>
+          <div class="copyright-text">
+            <p>© 2023 Second EV Platform. Tất cả quyền được bảo lưu.</p>
+            <div class="small-links">
+              <a href="#">Sitemap</a>
+              <a href="#">FAQ</a>
+              <a href="#">Accessibility</a>
+              <a href="#">Cookie Settings</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </footer>
+    <script>
+      // =========================================================
+      // PHẦN 1: DỮ LIỆU SẢN PHẨM MẪU (BẠN TỰ QUẢN LÝ Ở ĐÂY)
+      // =========================================================
+
+      const SAMPLE_PRODUCTS = {
+        // --- Mẫu 1: Xe Máy Điện (Áp dụng cho Ô tô điện) ---
+        xe_dien_A: {
+          product_type: "motorbike",
+          product_name: "Xe Máy Điện VinFast Vento S, Bảo Hành Pin 5 Năm",
+          price: 35000000,
+          condition_id: "1", // Mới 99% (Lướt)
+          description:
+            "Xe còn rất mới, chạy được 5.000 km. Đăng ký cuối năm 2023. Pin còn bảo hành chính hãng 5 năm. Chủ yếu đi chợ nên ít dùng. Bán lại để đổi sang ô tô. Sang tên nhanh gọn.",
+          phone: "0912345678",
+          location: "Quận 1, TP.HCM",
+          brand: "VinFast",
+          year_of_manufacture: 2023,
+          mileage: 5000,
+          battery_capacity: "3.5 kWh", // Dung lượng Pin (cho Xe)
+          warranty_status: "con_bh", // Còn bảo hành
+          max_speed: 90,
+          color: "Đen nhám",
+
+          images: [
+            "https://placehold.co/1000x500/0891b2/ffffff?text=XE+MÁY+ĐIỆN+ẢNH+THẬT+1",
+            "https://placehold.co/1000x500/0e7490/ffffff?text=XE+MÁY+ĐIỆN+ẢNH+THẬT+2",
+            "https://placehold.co/1000x500/155e75/ffffff?text=XE+MÁY+ĐIỆN+ẢNH+THẬT+3",
+            "https://placehold.co/1000x500/312e81/ffffff?text=XE+MÁY+ĐIỆN+ẢNH+THẬT+4",
+          ],
+        },
+
+        // --- Mẫu 2: Pin Đã Qua Sử Dụng ---
+        pin_LFP_B: {
+          product_type: "battery",
+          product_name: "Pin LFP 60Ah Cao Cấp, Tương Thích Xe Yadea",
+          price: 8500000,
+          condition_id: "2", // Tốt
+          description:
+            "Pin LFP 60Ah, tháo từ xe Yadea G5 đời 2022. Sức khỏe pin ước tính còn 88% theo app test. Hoạt động ổn định, chưa từng bị chai hay sụt áp đột ngột. Bán vì đã chuyển sang dùng pin Lithium mới nhất. Hỗ trợ lắp đặt và kiểm tra.",
+          phone: "0909876543",
+          location: "Hà Nội",
+
+          // Các trường không liên quan của Xe sẽ là null
+          brand: null,
+          year_of_manufacture: null,
+          mileage: null,
+          color: null,
+
+          // Trường riêng cho Pin
+          battery_type: "lfp",
+          battery_capacity_pin: "60 Ah",
+          usage_time: 18,
+          compatibility: "Tương thích với các dòng xe Yadea 60V, Pega",
+
+          images: [
+            "https://placehold.co/1000x500/10b981/ffffff?text=PIN+LFP+ẢNH+THẬT+1",
+            "https://placehold.co/1000x500/065f46/ffffff?text=PIN+LFP+ẢNH+THẬT+2",
+            "https://placehold.co/1000x500/16a34a/ffffff?text=PIN+LFP+ẢNH+THẬT+3",
+            "https://placehold.co/1000x500/4ade80/ffffff?text=PIN+LFP+ẢNH+THẬT+4",
+          ],
+        },
+      };
+
+      // Biến xác định ID sản phẩm muốn hiển thị
+      let PRODUCT_ID_TO_DISPLAY = "xe_dien_A"; // Mặc định hiển thị mẫu Xe Điện
+
+      // =========================================================
+      // PHẦN 2: LOGIC RENDER (KHÔNG CẦN CHỈNH SỬA)
+      // =========================================================
+
+      // Hàm định dạng tiền tệ
+      function formatCurrency(amount) {
+        return amount.toLocaleString("vi-VN") + " VNĐ";
+      }
+
+      // Hàm ánh xạ ID điều kiện sang tên
+      function getConditionName(id) {
+        const conditions = {
+          1: "Mới 99% (Lướt)",
+          2: "Tốt (Đã sử dụng)",
+          3: "Trung bình",
+          4: "Kém",
+        };
+        return conditions[id] || "Không xác định";
+      }
+
+      // Hàm lấy tên danh mục hiển thị
+      function getCategoryLabel(type) {
+        switch (type) {
+          case "car":
+            return "Ô Tô Điện Cũ";
+          case "motorbike":
+            return "Xe Máy Điện Cũ";
+          case "bike":
+            return "Xe Đạp Điện Cũ";
+          case "battery":
+            return "Pin Đã Qua Sử Dụng";
+          default:
+            return "Sản Phẩm";
+        }
+      }
+
+      // Hàm render thông số kỹ thuật
+      function renderTechSpecs(data) {
+        const container = document.getElementById("techSpecs");
+        let html = "";
+
+        // Thông số chung
+        html += `<div class="detail-item"><span class="detail-label">Tình trạng chung</span><span class="detail-value">${getConditionName(
+          data.condition_id
+        )}</span></div>`;
+        html += `<div class="detail-item"><span class="detail-label">Khu vực giao dịch</span><span class="detail-value">${data.location}</span></div>`;
+
+        if (data.product_type !== "battery") {
+          // Thông số cho XE (Car, Motorbike, Bike)
+          html += `<div class="detail-item"><span class="detail-label">Hãng xe</span><span class="detail-value">${data.brand}</span></div>`;
+          html += `<div class="detail-item"><span class="detail-label">Năm sản xuất</span><span class="detail-value">${data.year_of_manufacture}</span></div>`;
+          html += `<div class="detail-item"><span class="detail-label">Số Km đã đi</span><span class="detail-value">${data.mileage.toLocaleString(
+            "vi-VN"
+          )} Km</span></div>`;
+          html += `<div class="detail-item"><span class="detail-label">Dung lượng Pin</span><span class="detail-value">${data.battery_capacity}</span></div>`;
+
+          const warrantyText =
+            data.warranty_status === "con_bh"
+              ? "Còn bảo hành"
+              : data.warranty_status === "het_bh"
+              ? "Hết bảo hành"
+              : "Không rõ";
+          html += `<div class="detail-item"><span class="detail-label">Tình trạng bảo hành</span><span class="detail-value">${warrantyText}</span></div>`;
+
+          if (
+            data.product_type === "car" ||
+            data.product_type === "motorbike"
+          ) {
+            html += `<div class="detail-item"><span class="detail-label">Tốc độ tối đa</span><span class="detail-value">${data.max_speed} Km/h</span></div>`;
+          }
+        } else {
+          // Thông số cho PIN
+          html += `<div class="detail-item"><span class="detail-label">Loại Pin</span><span class="detail-value">${data.battery_type.toUpperCase()}</span></div>`;
+          html += `<div class="detail-item"><span class="detail-label">Dung lượng Pin</span><span class="detail-value">${data.battery_capacity_pin}</span></div>`;
+          html += `<div class="detail-item"><span class="detail-label">Đã sử dụng</span><span class="detail-value">${data.usage_time} tháng</span></div>`;
+          html += `<div class="detail-item"><span class="detail-label">Tương thích với</span><span class="detail-value">${data.compatibility}</span></div>`;
+        }
+
+        container.innerHTML = html;
+      }
+
+      // Hàm thay đổi ảnh chính
+      function changeMainImage(src) {
+        document.getElementById("mainProductImage").src = src;
+        // Cập nhật viền cho ảnh thumbnail
+        document.querySelectorAll("#thumbnailGallery img").forEach((img) => {
+          img.classList.remove("border-green-500");
+          img.classList.add("border-transparent");
+          if (img.src === src) {
+            img.classList.add("border-green-500");
+          }
+        });
+      }
+
+      // Hàm render ảnh thumbnail
+      function renderThumbnails(images) {
+        const gallery = document.getElementById("thumbnailGallery");
+        gallery.innerHTML = "";
+        images.forEach((src, index) => {
+          const img = document.createElement("img");
+          img.src = src;
+          img.alt = `Ảnh sản phẩm ${index + 1}`;
+          img.className = `w-full h-auto object-cover rounded-lg cursor-pointer border-2 transition duration-150 ${
+            index === 0
+              ? "border-green-500"
+              : "border-transparent hover:border-green-500"
+          }`;
+          img.onclick = () => changeMainImage(src);
+          gallery.appendChild(img);
+        });
+        // Khởi tạo ảnh chính là ảnh đầu tiên
+        if (images.length > 0) {
+          document.getElementById("mainProductImage").src = images[0];
+        }
+      }
+
+      // Hàm khởi tạo/cập nhật trang
+      function initializePage(data) {
+        document.getElementById("pageTitle").textContent = data.product_name;
+        document.getElementById("productName").textContent = data.product_name;
+        document.getElementById("productCategory").textContent =
+          getCategoryLabel(data.product_type);
+        document.getElementById("productPrice").textContent = formatCurrency(
+          data.price
+        );
+        document.getElementById("productDescription").textContent =
+          data.description;
+        document.getElementById(
+          "productLocation"
+        ).textContent = `Khu vực: ${data.location}`;
+
+        // Cập nhật liên hệ
+        const phoneMasked = data.phone.substring(0, 6) + " xxx";
+        document.getElementById(
+          "contactPhoneNumber"
+        ).textContent = `Gọi Điện: ${phoneMasked}`;
+        document.getElementById("phoneContact").href = `tel:${data.phone}`;
+
+        // Render ảnh và thông số
+        renderThumbnails(data.images || []);
+        renderTechSpecs(data);
+      }
+
+      // Hàm công khai để chuyển đổi sản phẩm mẫu
+      function displayProduct(id) {
+        const data = SAMPLE_PRODUCTS[id];
+        if (data) {
+          initializePage(data);
+          // Cập nhật trạng thái nút (Nếu cần thiết, phần này đang bị ẩn trong HTML)
+          document.querySelectorAll(".flex.space-x-4 button").forEach((btn) => {
+            btn.classList.remove("bg-blue-600", "bg-green-600");
+            if (btn.textContent.includes("Xe Điện") && id === "xe_dien_A") {
+              btn.classList.add("bg-blue-600");
+            } else if (
+              btn.textContent.includes("Pin Mẫu") &&
+              id === "pin_LFP_B"
+            ) {
+              btn.classList.add("bg-green-600");
+            }
+          });
+        } else {
+          console.error("Không tìm thấy dữ liệu sản phẩm với ID:", id);
+        }
+      }
+
+      // =========================================================
+      // PHẦN 3: LOGIC CUỘN SẢN PHẨM LIÊN QUAN (BỔ SUNG)
+      // =========================================================
+      function setupRelatedProductScrolling() {
+        const grid = document.getElementById("relatedProductsGrid");
+        // Lấy danh sách các nút điều hướng
+        const leftArrow = document.querySelector(".nav-arrow-btn.left-0");
+        const rightArrow = document.querySelector(".nav-arrow-btn.right-0");
+
+        if (!grid || !leftArrow || !rightArrow) return; // Thoát nếu không tìm thấy phần tử
+
+        // Lượng cuộn: bằng chiều rộng của một card sản phẩm (ước tính)
+        // Đây là giá trị ước tính dựa trên min-width: 280px + gap 1.5rem (khoảng 24px)
+        const scrollDistance = 304;
+
+        leftArrow.addEventListener("click", () => {
+          grid.scrollBy({
+            left: -scrollDistance,
+            behavior: "smooth", // Cuộn mượt
+          });
+        });
+
+        rightArrow.addEventListener("click", () => {
+          grid.scrollBy({
+            left: scrollDistance,
+            behavior: "smooth", // Cuộn mượt
+          });
+        });
+      }
+
+      // Chạy khởi tạo trang khi load xong
+      window.onload = function () {
+        displayProduct(PRODUCT_ID_TO_DISPLAY);
+        setupRelatedProductScrolling(); // <--- Bổ sung dòng này
+      };
+
+      // Đảm bảo navbar được cố định và full chiều rộng khi tải trang
+      window.addEventListener("load", () => {
+        // Tạo khoảng trống cho body để navbar không bị che khuất
+        document.body.style.paddingTop = "120px"; // Điều chỉnh độ cao padding-top tùy thuộc vào chiều cao của navbar
+      });
+    </script>
+    <script src="/js/main.js"></script>
+  </body>
+</html>
