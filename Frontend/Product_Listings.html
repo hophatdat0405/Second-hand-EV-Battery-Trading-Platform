@@ -16,11 +16,10 @@
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
     />
-
     <link rel="stylesheet" href="/css/navbar.css" />
     <link rel="stylesheet" href="/css/Product_Listings.css" />
   </head>
-  <body class="p-4 sm:p-8">
+  <body class="bg-gray-50">
     <header class="navbar">
       <div class="container">
         <a href="/index.html"
@@ -126,7 +125,7 @@
                 type="text"
                 id="title"
                 name="title"
-                placeholder="Ví dụ: Pin LFP 60Ah còn bảo hành, dùng cho Klara S"
+                placeholder="Ví dụ: Pega eSH 2023, mới 99%, pin còn bảo hành"
                 required
                 class="form-input w-full p-3 border rounded-lg focus:ring-green-500 focus:border-green-500"
               />
@@ -162,17 +161,14 @@
                 class="block text-sm font-medium text-gray-700 mb-1"
                 >Hãng Sản Xuất <span class="text-red-500">*</span></label
               >
-              <select
+              <input
+                type="text"
                 id="brand"
                 name="brand"
-                class="form-select w-full p-3 border rounded-lg bg-white focus:ring-green-500 focus:border-green-500"
-              >
-                <option value="">-- Chọn hãng --</option>
-                <option value="VinFast">VinFast</option>
-                <option value="Pega">Pega</option>
-                <option value="Yadea">Yadea</option>
-                <option value="Khác">Khác</option>
-              </select>
+                placeholder="Ví dụ: VinFast, Tesla, Pega, Yadea,..."
+                required
+                class="form-input w-full p-3 border rounded-lg focus:ring-green-500 focus:border-green-500"
+              />
             </div>
 
             <!-- Năm sản xuất (year_of_manufacture) -->
@@ -253,7 +249,7 @@
               id="description"
               name="description"
               rows="4"
-              placeholder="Ví dụ: Xe chạy ổn định, chưa thay thế linh kiện, bảo hành pin còn 5 năm. Bao test thợ..."
+              placeholder="Ví dụ: Xe chạy mượt, pin còn 5 năm bảo hành, tình trạng như mới. Sẵn sàng test trước khi mua. "
               required
               class="form-textarea w-full p-3 border rounded-lg focus:ring-green-500 focus:border-green-500"
             ></textarea>
