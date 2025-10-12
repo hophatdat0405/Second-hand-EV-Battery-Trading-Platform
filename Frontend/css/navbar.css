@@ -1,0 +1,455 @@
+:root {
+  --primary-color: #178a48; /* Xanh lá cây mạnh */
+  --secondary-color: #0d2138; /* Xanh Navy đậm */
+  --light-bg: #f5f8fb;
+  --border-color: #e0e0e0;
+  --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+
+  /* Nâng cấp Transition: nhanh hơn, mượt mà hơn */
+  --transition: 350ms cubic-bezier(0.2, 0.9, 0.3, 1.1); /* Hơi "springy" */
+  --fast-transition: 200ms cubic-bezier(0.25, 0.1, 0.25, 1);
+
+  /* Hiệu ứng Glow/Neon mềm */
+  --primary-glow: 0 0 10px rgba(23, 138, 72, 0.5),
+    0 0 20px rgba(23, 138, 72, 0.3);
+  --soft-glow: rgba(23, 138, 72, 0.15);
+  --dark-glow: 0 16px 40px rgba(0, 0, 0, 0.4);
+
+  /* Biến cho hiệu ứng Ripple JS */
+  --x: 50%;
+  --y: 50%;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+html,
+body {
+  height: 100%;
+}
+body {
+  /* ĐÃ CHỈNH SỬA FONT: Ưu tiên Inter, sau đó là Roboto, cuối cùng là Sans-serif */
+  font-family: "Inter", "Roboto", sans-serif !important;
+  color: #213547 !important;
+  line-height: 1.6 !important;
+  background-color: #fff !important;
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
+}
+
+.container {
+  max-width: 1200px !important;
+  margin: 0 auto;
+  padding: 0 15px !important;
+}
+/* QUAN TRỌNG: Loại bỏ gạch chân mặc định và khi hover/focus */
+a {
+  text-decoration: none !important; /* Đảm bảo loại bỏ gạch chân */
+  color: inherit;
+  transition: color var(--fast-transition); /* Giữ lại transition màu */
+}
+a:hover {
+  text-decoration: none !important;
+}
+a:focus {
+  /* Đã được tùy chỉnh ở phần ACCESSBILITY bên dưới để không có gạch chân */
+}
+
+/* Typography */
+h1 {
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.05);
+}
+h2 {
+  font-size: 2.5em;
+  font-weight: 800;
+  margin-bottom: 15px;
+  position: relative;
+  display: inline-block;
+}
+
+.section-subtitle {
+  font-size: 1.1em;
+  color: #555;
+  margin-bottom: 50px;
+}
+
+/* ========================================================================= */
+/* NÚT CHUNG (BUTTONS) - Cập nhật hiệu ứng focus/active */
+/* ========================================================================= */
+.btn {
+  padding: 12px 24px !important;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all var(--transition);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  letter-spacing: 0.5px;
+  overflow: hidden;
+  position: relative;
+}
+.btn:active {
+  transform: scale(0.98) translateY(0);
+  box-shadow: none !important;
+}
+/* QUAN TRỌNG: Loại bỏ mọi viền focus mặc định. */
+.btn:focus {
+  outline: none;
+  box-shadow: none !important;
+}
+.btn i {
+  transition: transform var(--fast-transition);
+}
+.btn:hover i {
+  transform: translateX(2px);
+}
+
+@keyframes ripple-spread {
+  0% {
+    width: 0;
+    height: 0;
+    opacity: 1;
+  }
+  100% {
+    width: 300%;
+    height: 300%;
+    opacity: 0;
+  }
+}
+
+/* Secondary Button: Giữ nguyên */
+.btn-secondary {
+  background: transparent;
+  border: 2px solid var(--border-color);
+  color: #213547;
+  position: relative;
+  z-index: 1;
+}
+.btn-secondary:hover {
+  color: var(--primary-color);
+  background: transparent;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 10px rgba(23, 138, 72, 0.2);
+}
+.btn-transparent {
+  background: transparent;
+  color: var(--primary-color);
+  border: 1px solid transparent;
+  padding: 10px 15px;
+  position: relative;
+}
+.btn-transparent::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%) scaleX(0);
+  height: 2px;
+  width: 80%;
+  background: var(--primary-color);
+  transition: transform var(--fast-transition);
+}
+.btn-transparent:hover::after {
+  transform: translateX(-50%) scaleX(1);
+}
+.btn-transparent-dark {
+  background: transparent;
+  color: #213547;
+  border: 1px solid #213547;
+  margin-top: 20px;
+  padding: 10px 15px;
+  border-radius: 6px;
+  transition: all var(--fast-transition);
+}
+.btn-transparent-dark:hover {
+  background-color: #213547;
+  color: #fff;
+}
+.navbar {
+  background-color: #fff;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  padding: 18px 0;
+  /* ⚠️ LỖI: Thay thế 'sticky' bằng 'fixed' */
+  position: fixed; /* ĐÃ CHỈNH SỬA TẠI ĐÂY */
+  top: 0;
+  z-index: 1000; /* Tăng z-index để chắc chắn hơn */
+  width: 100%;
+  left: 0;
+  right: 0;
+}
+.navbar .container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.logo {
+  display: flex;
+  align-items: center;
+  font-size: 1.2em;
+  font-weight: 700;
+  color: #213547;
+  transform: rotateZ(0);
+  transition: transform var(--transition);
+}
+.logo:hover {
+  transform: rotateZ(-1deg) scale(1.02);
+}
+.logo-icon {
+  background-color: var(--primary-color);
+  color: #fff;
+  padding: 6px 10px;
+  border-radius: 6px;
+  margin-right: 8px;
+  box-shadow: 0 0 10px rgba(23, 138, 72, 0.2);
+}
+.nav-links a {
+  /* Loại bỏ !important để dễ quản lý hơn, nếu cần thì dùng, nhưng giữ các giá trị này cố định */
+  margin: 0 16px; /* Giữ khoảng cách cố định */
+  font-size: 0.98em; /* Giữ kích thước font cố định */
+  color: #555;
+  position: relative;
+  padding-bottom: 8px; /* Giữ padding cố định */
+  font-weight: 500;
+  transition: color var(--fast-transition);
+}
+.nav-links a::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 4px;
+  border-radius: 4px;
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform 300ms cubic-bezier(0.1, 0.8, 0.4, 1.2);
+  background: linear-gradient(90deg, var(--primary-color), #3b91ff);
+}
+.nav-links a:hover {
+  color: var(--secondary-color);
+}
+.nav-links a:hover::after {
+  transform: scaleX(1);
+}
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.nav-icon {
+  color: #555;
+  font-size: 1.2em;
+  transition: color var(--fast-transition), transform var(--fast-transition);
+}
+.nav-icon:hover {
+  color: var(--primary-color);
+  transform: scale(1.1) rotateZ(5deg);
+}
+.user-icon {
+  font-size: 1.5em;
+  color: #555;
+}
+/* ========================================================================= */
+/* FOOTER - Nâng cấp cao cấp */
+/* ========================================================================= */
+.main-footer {
+  background-color: #0d1e33; /* Xanh Navy đậm hơn, cao cấp */
+  color: #aebacd;
+  background-image: linear-gradient(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.1)),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4' viewBox='0 0 4 4'%3E%3Cpath fill='%23122540' d='M1 3h1v1H1V3zm2-2h1v1H3V1z'%3E%3C/path%3E%3C/svg%3E");
+}
+
+/* ----- Top Info ----- */
+.footer-top-info {
+  background-color: #122540;
+  padding: 45px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 30px;
+  text-align: center;
+}
+
+.info-item {
+  color: #cfd8e5;
+  transition: transform 0.4s cubic-bezier(0.25, 1, 0.3, 1), color 0.3s ease;
+}
+
+.info-item:hover {
+  transform: translateY(-6px);
+  color: #fff;
+}
+
+.info-item i {
+  font-size: 2.5em;
+  color: var(--primary-color);
+  margin-bottom: 12px;
+  text-shadow: 0 0 15px rgba(23, 138, 72, 0.6), 0 0 30px rgba(23, 138, 72, 0.3);
+}
+
+.info-item p {
+  font-size: 0.95em;
+}
+
+/* ----- Main Links ----- */
+.footer-main-links {
+  padding: 60px 0;
+}
+
+.footer-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+  gap: 40px;
+}
+
+.footer-links h4 {
+  margin-bottom: 22px;
+  font-size: 1.15em;
+  color: var(--primary-color);
+  font-weight: 700;
+  text-shadow: 0 0 5px rgba(23, 138, 72, 0.2);
+}
+
+.footer-links a {
+  display: block;
+  padding: 6px 0;
+  color: #92a4b8;
+  transition: transform 0.35s cubic-bezier(0.25, 1, 0.3, 1), color 0.3s ease,
+    opacity 0.3s ease;
+  position: relative;
+  font-size: 0.95em;
+}
+
+.footer-links a:hover {
+  color: #fff;
+  transform: translateX(6px);
+  opacity: 1;
+}
+
+.footer-links a::before {
+  position: absolute;
+  left: -15px;
+  opacity: 0;
+  transition: all 0.35s cubic-bezier(0.25, 1, 0.3, 1);
+  color: var(--primary-color);
+}
+
+.footer-links a:hover::before {
+  left: -8px;
+  opacity: 1;
+}
+
+/* ----- Bottom Section ----- */
+.footer-bottom {
+  background-color: #0d1e33;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 30px 0;
+}
+.footer-bottom p {
+  margin-top: 5px;
+}
+.footer-info p {
+  margin-top: 10px;
+}
+/* ----- Subscribe Form ----- */
+.subscribe-form {
+  display: flex;
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: #1a304e;
+  border: 2px solid transparent;
+  transition: border-color 0.35s ease, box-shadow 0.35s ease;
+}
+
+.subscribe-form:focus-within {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 4px rgba(23, 138, 72, 0.25);
+}
+
+.subscribe-form input {
+  flex-grow: 1;
+  padding: 12px 18px;
+  background: transparent;
+  color: #fff;
+  border: none;
+  font-size: 1em;
+  outline: none;
+  transition: color 0.3s ease;
+}
+
+.subscribe-form input::placeholder {
+  color: #7d90a7;
+}
+
+.subscribe-form button {
+  padding: 12px 25px;
+  border-radius: 0 8px 8px 0;
+  background: var(--primary-color);
+  color: #fff;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.35s cubic-bezier(0.25, 1, 0.3, 1),
+    box-shadow 0.35s ease, background-color 0.3s ease;
+}
+
+.subscribe-form button:hover {
+  background-color: #29a05b;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(23, 138, 72, 0.3);
+}
+
+.subscribe-form button:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+/* ========================================================================= */
+/* FOCUS VÀ ACCESSIBILITY (Cải thiện hiệu ứng Focus) */
+/* ========================================================================= */
+:focus {
+  outline: none;
+}
+/* Focus cho các phần tử không phải nút primary/search bar */
+a:focus {
+  /* LOẠI BỎ GẠCH CHÂN */
+  outline: none;
+  box-shadow: none;
+  text-decoration: none !important;
+  /* THAY THẾ BẰNG HIỆU ỨNG GLOW NHẸ */
+  text-shadow: 0 0 3px rgba(23, 138, 72, 0.5);
+  border-radius: 4px;
+}
+
+/* Đảm bảo Selects/Inputs có hiệu ứng focus mềm mại, không có viền ngoài thứ hai */
+select:focus {
+  outline: none;
+  /* Giữ nguyên border-color và box-shadow tinh chỉnh ở trên */
+}
+
+/* KHẮC PHỤC FOOTER LINKS: Loại bỏ viền trắng khi focus */
+.main-footer a:focus {
+  box-shadow: none;
+  text-decoration: none !important; /* Đảm bảo Footer links cũng không có gạch chân */
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.6); /* Thêm glow trắng nhẹ */
+  color: #fff; /* Tăng độ sáng chữ */
+}
+
+/* KHẮC PHỤC TABS: Loại bỏ focus ring cho nút tab (đã có hiệu ứng scale) */
+.tab-btn:focus {
+  outline: none;
+  box-shadow: none !important;
+  border-color: var(--primary-color);
+}
+.tab-btn.active:focus {
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.3),
+    0 15px 35px rgba(23, 138, 72, 0.15) !important;
+}
