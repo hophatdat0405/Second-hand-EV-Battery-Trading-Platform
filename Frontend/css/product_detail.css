@@ -1,0 +1,29 @@
+body {
+  font-family: "Inter", sans-serif;
+  background-color: #f7f9fb;
+}
+.container-shadow {
+  box-box-shadow: 0 5px 15px rgba(0, 0, 0, 0.04);
+}
+.nav-links > a {
+  font-weight: 400 !important;
+}
+.detail-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px dashed #e5e7eb;
+}
+.detail-label {
+  font-weight: 600;
+  color: #6b7280;
+}
+.detail-value {
+  font-weight: 700;
+  color: #1f2937;
+  text-align: right;
+}
+.max-w-6xl {
+  margin-bottom: 30px;
+}
