@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Second-hand EV & Battery Trading Platform</title>
+
+    <!-- Font Awesome -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    />
+
+    <!-- Font hỗ trợ tiếng Việt đầy đủ -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Roboto:wght@400;500;700&display=swap&subset=vietnamese"
+      rel="stylesheet"
+    />
+
+
+    <!-- CSS chính -->
+    <link rel="stylesheet" href="/css/style.css" />
+      <style>
+    .hero-section {
+
+  margin-top: -50px;
+}
+.products-grid .product-card .btn-green-sm:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(23, 138, 72, 0.09);
+  background-color: color-mix(
+    in srgb,
+    var(--primary-color) 92%,
+    white 10%
+  ); /* hoặc giữ nguyên */
+}
+
+  </style>
+  </head>
+<body>
+    <header class="navbar">
+      <div class="container">
+        <a href="/index.html"
+          ><div class="logo">
+            <span class="logo-icon">EV</span>
+            <span class="logo-text">Second-hand EV</span>
+          </div>
+        </a>
+        <nav class="nav-links">
+          <a href="#">Tìm kiếm</a>
+          <a href="#">Thể loại</a>
+          <a href="#">Thương hiệu</a>
+          <a href="/compare.html">So sánh</a>
+          <a href="#">Hỗ trợ</a>
+        </nav>
+        <div class="nav-actions">
+          <a href="/liked.html" class="nav-icon"
+            ><i class="far fa-heart"></i
+          ></a>
+          <a href="#" class="nav-icon"><i class="far fa-bell"></i></a>
+          <a href="/login.html" class="btn btn-secondary">ĐĂNG NHẬP</a>
+          <a href="/profile.html" class="user-icon"
+            ><i class="far fa-user-circle"></i
+          ></a>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero-section">
+       <section class="products-section">
+        <div class="container">
+          <h2>Tổng hợp bài đăng</h2>
+         
+
+          <div class="products-grid">
+            <div class="product-card">
+              <div class="favorite-icon" title="Thêm vào yêu thích">
+                <i class="fas fa-heart"></i>
+              </div>
+              <span class="label hot-label">HOT SALE</span>
+              <div class="product-image-placeholder">
+                <i class="fas fa-car"></i>
+              </div>
+              <div class="product-info">
+                <h4>VinFast VF8 Plus</h4>
+                <p class="brand">VinFast</p>
+                <p class="price">1.2 tỷ</p>
+                <div class="details">
+                  <span><i class="fas fa-map-marker-alt"></i> Hà Nội</span>
+                  <span><i class="fas fa-calendar-alt"></i> 2023</span>
+                  <span><i class="fas fa-bolt"></i> 87.7 kWh</span>
+                  <span><i class="fas fa-road"></i> 12,000 km</span>
+                </div>
+                <div class="progress-bar-container">
+                  <span class="progress-text">Tốt 95%</span>
+                  <div class="progress-bar">
+                    <div class="progress" style="width: 95%"></div>
+                  </div>
+                </div>
+                <div class="product-actions">
+                  <a href="/product_detail.html" class="btn-green-sm">
+                    Xem chi tiết
+                  </a>
+
+                  <a href="/cart.html" class="contact-link">Mua ngay</a>
+                </div>
+              </div>
+            </div>
+            <div class="product-card">
+              <span class="label new-label">NEW</span>
+              <div class="product-image-placeholder">
+                <i class="fas fa-battery-three-quarters"></i>
+              </div>
+              <div class="product-info">
+                <h4>Pin Lithium-ion 100kWh</h4>
+                <p class="brand">CATL</p>
+                <p class="price">450 triệu</p>
+                <div class="details">
+                  <span><i class="fas fa-map-marker-alt"></i> Đà Nẵng</span>
+                  <span><i class="fas fa-calendar-alt"></i> 2023</span>
+                  <span><i class="fas fa-star"></i> 4.7</span>
+                  <span><i class="fas fa-bolt"></i> Mới 98%</span>
+                </div>
+                <div class="progress-bar-container">
+                  <span class="progress-text">Mới 98%</span>
+                  <div class="progress-bar">
+                    <div class="progress" style="width: 98%"></div>
+                  </div>
+                </div>
+                <div class="product-actions">
+                  <button class="btn-green-sm">Xem chi tiết</button>
+                  <a href="#" class="contact-link">Liên hệ</a>
+                </div>
+              </div>
+            </div>
+            <div class="product-card">
+              <div class="product-image-placeholder">
+                <i class="fas fa-car-battery"></i>
+              </div>
+              <div class="product-info">
+                <h4>BMW iX3</h4>
+                <p class="brand">BMW</p>
+                <p class="price">2.3 tỷ</p>
+                <div class="details">
+                  <span><i class="fas fa-map-marker-alt"></i> Hà Nội</span>
+                  <span><i class="fas fa-calendar-alt"></i> 2023</span>
+                  <span><i class="fas fa-bolt"></i> 80 kWh</span>
+                  <span><i class="fas fa-road"></i> 30,000 km</span>
+                </div>
+                <div class="progress-bar-container">
+                  <span class="progress-text">Tốt 96%</span>
+                  <div class="progress-bar">
+                    <div class="progress" style="width: 96%"></div>
+                  </div>
+                </div>
+                <div class="product-actions">
+                  <button class="btn-green-sm">Xem chi tiết</button>
+                  <a href="#" class="contact-link">Liên hệ</a>
+                </div>
+              </div>
+            </div>
+            <div class="product-card">
+              <span class="label hot-label">HOT</span>
+              <div class="product-image-placeholder">
+                <i class="fas fa-car"></i>
+              </div>
+              <div class="product-info">
+                <h4>Tesla Model 3</h4>
+                <p class="brand">Tesla</p>
+                <p class="price">1.8 tỷ</p>
+                <div class="details">
+                  <span><i class="fas fa-map-marker-alt"></i> TP.HCM</span>
+                  <span><i class="fas fa-calendar-alt"></i> 2022</span>
+                  <span><i class="fas fa-bolt"></i> 75 kWh</span>
+                  <span><i class="fas fa-road"></i> 25,000 km</span>
+                </div>
+                <div class="progress-bar-container">
+                  <span class="progress-text">Tốt 92%</span>
+                  <div class="progress-bar">
+                    <div class="progress" style="width: 92%"></div>
+                  </div>
+                </div>
+                <div class="product-actions">
+                  <button class="btn-green-sm">Xem chi tiết</button>
+                  <a href="#" class="contact-link">Liên hệ</a>
+                </div>
+              </div>
+            </div>
+          </div>
+       
+        </div>
+      </section>
+    </main>
+
+    <footer class="main-footer">
+      <div class="footer-top-info">
+        <div class="container info-grid">
+          <div class="info-item">
+            <i class="fas fa-shield-alt"></i>
+            <h4>An toàn tuyệt đối</h4>
+            <p>Giao dịch được bảo vệ 100%</p>
+          </div>
+          <div class="info-item">
+            <i class="fas fa-money-check-alt"></i>
+            <h4>Thanh toán linh hoạt</h4>
+            <p>Đa dạng phương thức thanh toán</p>
+          </div>
+          <div class="info-item">
+            <i class="fas fa-certificate"></i>
+            <h4>Chất lượng đảm bảo</h4>
+            <p>Xe và pin được kiểm định kỹ lưỡng</p>
+          </div>
+          <div class="info-item">
+            <i class="fas fa-headset"></i>
+            <h4>Hỗ trợ 24/7</h4>
+            <p>Tư vấn và hỗ trợ mọi lúc</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer-main-links">
+        <div class="container footer-grid">
+          <div class="footer-info">
+            <div class="logo">
+              <span class="logo-icon">EV</span>
+              <span class="logo-text">Second-hand EV</span>
+            </div>
+            <p>
+              Nền tảng giao dịch xe điện và pin cũ trên toàn Việt Nam. Chung tay
+              kết nối những người mua và người bán một cách an toàn, minh bạch
+              và hiệu quả.
+            </p>
+            <p><i class="fas fa-phone-alt"></i> 1900 2024</p>
+            <p><i class="fas fa-envelope"></i> support@secondhandev.com</p>
+            <p>
+              <i class="fas fa-map-marker-alt"></i> 123 Đường ABC, Quận XYZ, TP.
+              Hà Nội
+            </p>
+            <div class="social-icons">
+              <a href="#"><i class="fab fa-facebook-f"></i></a>
+              <a href="#"><i class="fab fa-twitter"></i></a>
+              <a href="#"><i class="fab fa-instagram"></i></a>
+              <a href="#"><i class="fab fa-linkedin-in"></i></a>
+            </div>
+          </div>
+
+          <div class="footer-links">
+            <h4>VỀ CHÚNG TÔI</h4>
+            <ul>
+              <li><a href="#">Giới thiệu</a></li>
+              <li><a href="#">Đội ngũ</a></li>
+              <li><a href="#">Tin tức</a></li>
+              <li><a href="#">Tuyển dụng</a></li>
+            </ul>
+          </div>
+          <div class="footer-links">
+            <h4>DỊCH VỤ</h4>
+            <ul>
+              <li><a href="#">Mua xe điện</a></li>
+              <li><a href="#">Bán xe điện</a></li>
+              <li><a href="#">Định giá xe</a></li>
+              <li><a href="#">Tư vấn chuyển giao</a></li>
+            </ul>
+          </div>
+          <div class="footer-links">
+            <h4>HỖ TRỢ</h4>
+            <ul>
+              <li><a href="#">Trung tâm giúp</a></li>
+              <li><a href="#">Hướng dẫn sử dụng</a></li>
+              <li><a href="#">Chính sách bảo hành</a></li>
+              <li><a href="#">Liên hệ hỗ trợ</a></li>
+            </ul>
+          </div>
+          <div class="footer-links">
+            <h4>PHÁP LÝ</h4>
+            <ul>
+              <li><a href="#">Điều khoản sử dụng</a></li>
+              <li><a href="#">Chính sách bán hàng</a></li>
+              <li><a href="#">Chính sách hoàn tiền</a></li>
+              <li><a href="#">Quy định giao dịch</a></li>
+              <li><a href="#">Báo cáo vi phạm</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <div class="container footer-bottom-content">
+          <div class="subscription-box">
+            <h4>Đăng ký nhận tin</h4>
+            <p>
+              Nhận thông tin về xe điện mới nhất, khuyến mãi đặc biệt và tin tức
+              thị trường.
+            </p>
+            <div class="subscribe-form">
+              <input type="email" placeholder="Nhập địa chỉ email của bạn" />
+              <button class="btn btn-primary">Đăng ký</button>
+            </div>
+          </div>
+          <div class="copyright-text">
+            <p>© 2023 Second EV Platform. Tất cả quyền được bảo lưu.</p>
+            <div class="small-links">
+              <a href="#">Sitemap</a>
+              <a href="#">FAQ</a>
+              <a href="#">Accessibility</a>
+              <a href="#">Cookie Settings</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <script src="/js/main.js"></script>
+</body>
+</html>
