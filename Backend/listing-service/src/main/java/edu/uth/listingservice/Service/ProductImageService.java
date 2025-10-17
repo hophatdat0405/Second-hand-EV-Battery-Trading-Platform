@@ -9,7 +9,7 @@ public interface ProductImageService {
     ProductImage getImageById(Long id);
     List<ProductImage> getImagesByProductId(Long productId);
     ProductImage createImage(ProductImage productImage);
-    ProductImage updateImage(Long id, ProductImage productImage);
+
     void deleteImage(Long id);
 }
 

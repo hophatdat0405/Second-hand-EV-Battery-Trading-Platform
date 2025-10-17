@@ -57,4 +57,18 @@ public class FileStorageService {
         }
         return filename.substring(filename.lastIndexOf(".") + 1);
     }
+    public void delete(String filePath) {
+        if (filePath == null || filePath.isBlank()) {
+            return;
+        }
+        try {
+            // Lấy tên file từ đường dẫn URL (ví dụ: /uploads/abc.jpg -> abc.jpg)
+            String filename = filePath.substring(filePath.lastIndexOf("/") + 1);
+            Path file = rootLocation.resolve(filename);
+            Files.deleteIfExists(file);
+        } catch (IOException e) {
+            // Log lỗi thay vì throw exception để không làm dừng chương trình
+            System.err.println("Could not delete file: " + filePath + ". Error: " + e.getMessage());
+        }
+    }
 }

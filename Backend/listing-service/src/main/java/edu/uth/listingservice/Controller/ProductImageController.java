@@ -44,10 +44,6 @@ public class ProductImageController {
         return productImageService.createImage(productImage);
     }
 
-    @PutMapping("/{id}")
-    public ProductImage updateImage(@PathVariable Long id, @RequestBody ProductImage productImage) {
-        return productImageService.updateImage(id, productImage);
-    }
 
     @DeleteMapping("/{id}")
     public void deleteImage(@PathVariable Long id) {

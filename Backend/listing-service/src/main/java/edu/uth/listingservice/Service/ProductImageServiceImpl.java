@@ -34,14 +34,6 @@ public class ProductImageServiceImpl implements ProductImageService {
         return productImageRepository.save(productImage);
     }
 
-    @Override
-    public ProductImage updateImage(Long id, ProductImage updatedImage) {
-        ProductImage existing = getImageById(id);
-        existing.setImageUrl(updatedImage.getImageUrl());
-        existing.setImageType(updatedImage.getImageType());
-        existing.setProduct(updatedImage.getProduct());
-        return productImageRepository.save(existing);
-    }
 
     @Override
     public void deleteImage(Long id) {

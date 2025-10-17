@@ -52,7 +52,7 @@ private Long price;
     @Column(name = "updated_at")
     private Date updatedAt = new Date();
 
-    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL,orphanRemoval = true)
      @JsonManagedReference // ✅ THÊM DÒNG NÀY (Đánh dấu đây là "cha")
     private List<ProductImage> images;
 
