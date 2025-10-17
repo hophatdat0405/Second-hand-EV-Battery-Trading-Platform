@@ -1,6 +1,7 @@
 package edu.uth.listingservice.Repository;
 
 import java.util.List;
+import org.springframework.data.domain.Page; // Thêm import này
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -20,7 +21,8 @@ public interface ProductListingRepository extends JpaRepository<ProductListing, 
     @Query("SELECT pl FROM ProductListing pl WHERE pl.listingStatus = :status AND pl.product.productType = :productType")
     List<ProductListing> findByStatusAndProductType(ListingStatus status, String productType, Pageable pageable);
 
-     List<ProductListing> findByUserId(Long userId);
+     // THAY ĐỔI PHƯƠNG THỨC NÀY TỪ List<> thành Page<>
+    Page<ProductListing> findByUserId(Long userId, Pageable pageable);
  
      ProductListing findByProduct_ProductId(Long productId);
 

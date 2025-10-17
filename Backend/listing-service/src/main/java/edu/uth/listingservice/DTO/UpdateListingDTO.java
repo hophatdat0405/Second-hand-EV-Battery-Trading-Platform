@@ -1,9 +1,10 @@
-package edu.uth.listingservice.DTO;
+package edu.uth.listingservice.DTO; // Thay đổi package cho đúng với cấu trúc của bạn
 
 import lombok.Data;
 
 @Data
 public class UpdateListingDTO {
+    // Thông tin cơ bản
     private String productName;
     private String brand;
     private Long price;
@@ -11,4 +12,23 @@ public class UpdateListingDTO {
     private String phone;
     private String location;
     private String warrantyPolicy;
+
+    // --- CÁC TRƯỜNG KỸ THUẬT ĐƯỢC ĐỒNG BỘ VỚI MODEL ---
+    
+    // Các trường kiểu String
+    private String batteryCapacity;
+    private String batteryType;
+    private String batteryLifespan;
+    private String compatibleVehicle;
+    private String color;
+    private String chargeTime;
+    
+    // Các trường kiểu Integer
+    private Integer yearOfManufacture;
+    private Integer maxSpeed;
+    private Integer rangePerCharge;
+
+    // Các trường kiểu Long
+    private Long mileage;
+    private Long chargeCycles;
 }

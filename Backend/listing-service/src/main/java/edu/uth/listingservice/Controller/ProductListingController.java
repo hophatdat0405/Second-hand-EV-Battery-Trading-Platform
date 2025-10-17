@@ -1,7 +1,9 @@
 package edu.uth.listingservice.Controller;
-
+// Thêm import
+import org.springframework.data.domain.Page;
 import java.util.List;
-
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.http.ResponseEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -40,20 +42,14 @@ public class ProductListingController {
             @RequestParam(defaultValue = "6") int limit) {
         return listingService.findRandomRelated(type, excludeId, limit);
     }
-    // @GetMapping
-    // public List<ProductListing> getAll() {
-    //     return listingService.getAll();
-    // }
+  
 
     @GetMapping("/{id}")
     public ProductListing getById(@PathVariable Long id) {
         return listingService.getById(id);
     }
 
-    @GetMapping("/user/{userId}")
-    public List<ProductListing> getByUserId(@PathVariable Long userId) {
-        return listingService.getByUserId(userId);
-    }
+ 
 
     @PostMapping
     public ProductListing create(@RequestBody ProductListing listing) {
@@ -64,18 +60,52 @@ public class ProductListingController {
     public ProductListing update(@PathVariable Long id, @RequestBody ProductListing listing) {
         return listingService.update(id, listing);
     }
-@PutMapping("/{id}/update-details")
+   @PutMapping("/{id}/update-details")
     public ProductListing updateDetails(@PathVariable Long id, @RequestBody UpdateListingDTO dto) {
         return listingService.updateListingDetails(id, dto);
     }
 
+@PostMapping("/{listingId}/add-images")
+public ResponseEntity<ProductListing> addImages(
+        @PathVariable Long listingId,
+        @RequestParam("images") List<MultipartFile> files) {
+            
+    if (files == null || files.isEmpty() || files.get(0).isEmpty()) {
+        return ResponseEntity.badRequest().build();
+    }
+    
+    ProductListing updatedListing = listingService.addImagesToListing(listingId, files);
+    return ResponseEntity.ok(updatedListing);
+}
+
+
+
+
+@PostMapping("/{listingId}/delete-image/{imageId}")
+public ResponseEntity<Void> deleteImage(
+        @PathVariable Long listingId,
+        @PathVariable Long imageId) {
+            
+    listingService.deleteImageFromListing(listingId, imageId);
+    return ResponseEntity.noContent().build(); // Trả về 204 No Content khi thành công
+}
     @PutMapping("/{id}/mark-as-sold")
     public ProductListing markAsSold(@PathVariable Long id) {
         return listingService.markAsSold(id);
     }
-    @DeleteMapping("/{id}")
-    public void delete(@PathVariable Long id) {
-        listingService.delete(id);
-    }
 
+@GetMapping("/user/{userId}")
+public Page<ProductListing> getByUserId(
+        @PathVariable Long userId,
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "12") int size) {
+    return listingService.getByUserId(userId, page, size);
+}
+
+
+@DeleteMapping("/{id}")
+public ResponseEntity<Void> deleteListing(@PathVariable Long id) {
+    listingService.delete(id);
+    return ResponseEntity.noContent().build();
+}
 }
