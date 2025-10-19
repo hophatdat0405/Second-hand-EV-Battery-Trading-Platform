@@ -68,98 +68,94 @@ private FileStorageService fileStorageService; // Tận dụng service đã có
 
    
 
+
+   // --- BẮT ĐẦU PHẦN SỬA LỖI ---
     @Override
     public List<ProductListing> getActiveListings(String type, String sortBy, int limit) {
-        // Mặc định sắp xếp theo ngày đăng mới nhất
         Sort sort = Sort.by(Sort.Direction.DESC, "listingDate");
-
-        // Nếu người dùng chọn "Giá tốt", đổi lại sắp xếp theo giá tăng dần
         if ("price".equalsIgnoreCase(sortBy)) {
             sort = Sort.by(Sort.Direction.ASC, "product.price");
         }
-
-        // Tạo đối tượng Pageable để giới hạn số lượng kết quả
         Pageable pageable = PageRequest.of(0, limit, sort);
-
-        // Nếu có lọc theo loại sản phẩm (car, bike,...)
+        
+        // ✅ ĐÂY LÀ PHẦN SỬA LỖI: Thêm lại .getContent() để chuyển Page -> List
         if (type != null && !type.isEmpty() && !"all".equalsIgnoreCase(type)) {
-            return listingRepository.findByStatusAndProductType(ListingStatus.PENDING, type, pageable);
+            // Lấy Page từ repo rồi chuyển thành List bằng .getContent()
+            return listingRepository.findByStatusAndProductType(ListingStatus.ACTIVE, type, pageable).getContent();
         }
-
-        // Nếu không, lấy tất cả các loại
-        return listingRepository.findByListingStatus(ListingStatus.PENDING, pageable);
+        
+        // Lấy Page từ repo rồi chuyển thành List bằng .getContent()
+        return listingRepository.findByListingStatus(ListingStatus.ACTIVE, pageable).getContent();
     }
+    // --- KẾT THÚC PHẦN SỬA LỖI ---
+
     @Override
     public List<ProductListing> findRandomRelated(String productType, Long excludeProductId, int limit) {
         return listingRepository.findRandomRelatedProducts(productType, excludeProductId, limit);
     }
+
 @Override
-@Transactional
-public ProductListing updateListingDetails(Long listingId, UpdateListingDTO dto) {
-    ProductListing listing = getById(listingId);
-    Product product = listing.getProduct();
-    ProductSpecification spec = product.getSpecification();
+    @Transactional
+    public ProductListing updateListingDetails(Long listingId, UpdateListingDTO dto) {
+        ProductListing listing = getById(listingId);
+        Product product = listing.getProduct();
+        ProductSpecification spec = product.getSpecification();
 
-    // 1. KIỂM TRA ĐIỀU KIỆN BAN ĐẦU (Giữ nguyên)
-    if (listing.getListingStatus() == ListingStatus.SOLD) {
-        throw new IllegalStateException("Không thể chỉnh sửa tin đã bán.");
-    }
-    if (listing.isUpdatedOnce()) {
-        throw new IllegalStateException("Tin đăng này đã được chỉnh sửa và không thể sửa thêm.");
-    }
-
-    // --- LOGIC MỚI: PHÂN LUỒNG XỬ LÝ DỰA TRÊN TRẠNG THÁI ---
-    
-    if (listing.getListingStatus() == ListingStatus.ACTIVE) {
-        // YÊU CẦU: Nếu là ACTIVE, chỉ cập nhật các trường được phép.
-        product.setPrice(dto.getPrice());
-        product.setDescription(dto.getDescription());
-        listing.setPhone(dto.getPhone());
-        listing.setLocation(dto.getLocation());
-        spec.setWarrantyPolicy(dto.getWarrantyPolicy());
-        // Các trường khác như productName, brand, thông số kỹ thuật sẽ bị BỎ QUA.
-        
-        // YÊU CẦU: Sau khi sửa, chuyển về PENDING.
-        listing.setListingStatus(ListingStatus.PENDING);
-
-    } else if (listing.getListingStatus() == ListingStatus.PENDING) {
-        // YÊU CẦU: Nếu là PENDING, cập nhật tất cả các trường.
-        product.setProductName(dto.getProductName());
-        spec.setBrand(dto.getBrand());
-        product.setPrice(dto.getPrice());
-        product.setDescription(dto.getDescription());
-        listing.setPhone(dto.getPhone());
-        listing.setLocation(dto.getLocation());
-        spec.setWarrantyPolicy(dto.getWarrantyPolicy());
-
-        // Cập nhật tất cả các thông số kỹ thuật
-        spec.setBatteryType(dto.getBatteryType());
-        spec.setChargeTime(dto.getChargeTime());
-        spec.setChargeCycles(dto.getChargeCycles());
-
-        if (!"battery".equals(product.getProductType())) {
-            spec.setRangePerCharge(dto.getRangePerCharge());
-            spec.setMileage(dto.getMileage());
-            spec.setBatteryCapacity(dto.getBatteryCapacity());
-            spec.setColor(dto.getColor());
-            spec.setMaxSpeed(dto.getMaxSpeed());
-        } else {
-            spec.setCompatibleVehicle(dto.getCompatibleVehicle());
-            spec.setBatteryLifespan(dto.getBatteryLifespan());
-            spec.setBatteryCapacity(dto.getBatteryCapacity());
+        if (listing.getListingStatus() == ListingStatus.SOLD) {
+            throw new IllegalStateException("Không thể chỉnh sửa tin đã bán.");
         }
+        if (listing.isUpdatedOnce()) {
+            throw new IllegalStateException("Tin đăng này đã được chỉnh sửa và không thể sửa thêm.");
+        }
+
+        // --- LOGIC MỚI: Xử lý các trạng thái có thể sửa ---
+        
+        // 1. Nếu là ACTIVE, chỉ cập nhật các trường được phép.
+        if (listing.getListingStatus() == ListingStatus.ACTIVE) {
+            product.setPrice(dto.getPrice());
+            product.setDescription(dto.getDescription());
+            listing.setPhone(dto.getPhone());
+            listing.setLocation(dto.getLocation());
+            spec.setWarrantyPolicy(dto.getWarrantyPolicy());
+        
+        // 2. Nếu là PENDING hoặc REJECTED, cho phép cập nhật tất cả.
+        } else if (listing.getListingStatus() == ListingStatus.PENDING || listing.getListingStatus() == ListingStatus.REJECTED) {
+            product.setProductName(dto.getProductName());
+            spec.setBrand(dto.getBrand());
+            product.setPrice(dto.getPrice());
+            product.setDescription(dto.getDescription());
+            listing.setPhone(dto.getPhone());
+            listing.setLocation(dto.getLocation());
+            spec.setWarrantyPolicy(dto.getWarrantyPolicy());
+
+            spec.setBatteryType(dto.getBatteryType());
+            spec.setChargeTime(dto.getChargeTime());
+            spec.setChargeCycles(dto.getChargeCycles());
+
+            if (!"battery".equals(product.getProductType())) {
+                spec.setRangePerCharge(dto.getRangePerCharge());
+                spec.setMileage(dto.getMileage());
+                spec.setBatteryCapacity(dto.getBatteryCapacity());
+                spec.setColor(dto.getColor());
+                spec.setMaxSpeed(dto.getMaxSpeed());
+            } else {
+                spec.setCompatibleVehicle(dto.getCompatibleVehicle());
+                spec.setBatteryLifespan(dto.getBatteryLifespan());
+                spec.setBatteryCapacity(dto.getBatteryCapacity());
+            }
+        }
+
+        // 3. Cập nhật các thông tin chung sau khi chỉnh sửa
+        listing.setUpdatedOnce(true);      // Đánh dấu đã sửa 1 lần
+        listing.setListingStatus(ListingStatus.PENDING); // Luôn chuyển về PENDING
+        listing.setListingDate(new Date());  // Cập nhật ngày đăng thành ngày mới nhất
+        listing.setUpdatedAt(new Date());
+        product.setUpdatedAt(new Date());
+
+        productRepository.save(product);
+        specRepository.save(spec);
+        return listingRepository.save(listing);
     }
-
-    // 3. ĐÁNH DẤU ĐÃ SỬA VÀ LƯU LẠI
-    // Bất kể sửa từ ACTIVE hay PENDING, đều đánh dấu đã sửa 1 lần.
-    listing.setUpdatedOnce(true);
-    listing.setUpdatedAt(new Date());
-    product.setUpdatedAt(new Date());
-
-    productRepository.save(product);
-    specRepository.save(spec);
-    return listingRepository.save(listing);
-}
     @Override
     @Transactional
     public ProductListing markAsSold(Long listingId) {
