@@ -15,11 +15,13 @@ import edu.uth.listingservice.Model.ProductListing;
 @Repository
 public interface ProductListingRepository extends JpaRepository<ProductListing, Long> {
      // Tìm các tin đăng đang hoạt động, có phân trang và sắp xếp
-    List<ProductListing> findByListingStatus(ListingStatus status, Pageable pageable);
+// Phương thức này dùng cho trang quản lý của Admin
+    Page<ProductListing> findByListingStatus(ListingStatus status, Pageable pageable);
 
-    // Tìm các tin đăng đang hoạt động THEO LOẠI SẢN PHẨM, có phân trang và sắp xếp
-    @Query("SELECT pl FROM ProductListing pl WHERE pl.listingStatus = :status AND pl.product.productType = :productType")
-    List<ProductListing> findByStatusAndProductType(ListingStatus status, String productType, Pageable pageable);
+// ✅ SỬA LỖI TẠI ĐÂY: Đổi kiểu trả về thành "Page"
+    // Dùng cho getActiveListings để lọc theo loại sản phẩm.
+    @Query("SELECT pl FROM ProductListing pl WHERE pl.listingStatus = :status AND pl.product.productType = :type")
+    Page<ProductListing> findByStatusAndProductType(@Param("status") ListingStatus status, @Param("type") String type, Pageable pageable);
 
      // THAY ĐỔI PHƯƠNG THỨC NÀY TỪ List<> thành Page<>
     Page<ProductListing> findByUserId(Long userId, Pageable pageable);
@@ -29,11 +31,16 @@ public interface ProductListingRepository extends JpaRepository<ProductListing, 
   
 
     @Query(value = "SELECT pl.* FROM product_listings pl JOIN products p ON pl.product_id = p.product_id " +
-                   "WHERE pl.listing_status = 'PENDING' " +
+                   "WHERE pl.listing_status = 'ACTIVE' " +
                    "AND p.product_type = :productType " +
                    "AND p.product_id != :excludeProductId " +
                    "ORDER BY RAND() LIMIT :limit", nativeQuery = true)
     List<ProductListing> findRandomRelatedProducts(@Param("productType") String productType,
                                                    @Param("excludeProductId") Long excludeProductId,
                                                    @Param("limit") int limit);
+
+     @Query("SELECT pl FROM ProductListing pl WHERE " +
+           "LOWER(pl.product.productName) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
+           "CAST(pl.userId AS string) LIKE CONCAT('%', :query, '%')")
+    Page<ProductListing> searchByProductNameOrUserId(@Param("query") String query, Pageable pageable);
 }

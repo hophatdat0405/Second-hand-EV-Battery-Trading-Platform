@@ -53,4 +53,9 @@ public class ProductListing {
     private Date updatedAt = new Date();
     @Column(name = "updated_once", columnDefinition = "BOOLEAN DEFAULT FALSE")
 private boolean updatedOnce = false;
+@Column(name = "is_verified", nullable = false)
+    private boolean verified = false; // Mặc định là false (chưa kiểm định)
+
+    @Column(name = "admin_notes")
+    private String adminNotes; // Ghi chú của admin, ví dụ: lý do từ chối
 }
