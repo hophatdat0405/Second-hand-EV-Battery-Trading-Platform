@@ -27,12 +27,14 @@ public class ProductListingController {
     @Autowired
     private ProductListingService listingService;
 
+    // ✅ THAY ĐỔI HÀM NÀY
     @GetMapping
-    public List<ProductListing> getFilteredListings(
+    public Page<ProductListing> getFilteredListings(
             @RequestParam(required = false) String type,
             @RequestParam(defaultValue = "date") String sortBy,
-            @RequestParam(defaultValue = "4") int limit) {
-        return listingService.getActiveListings(type, sortBy, limit);
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "6") int size) { // Mặc định 24 tin/trang
+        return listingService.getActiveListings(type, sortBy, page, size);
     }
     
     @GetMapping("/related")
@@ -108,4 +110,12 @@ public ResponseEntity<Void> deleteListing(@PathVariable Long id) {
     listingService.delete(id);
     return ResponseEntity.noContent().build();
 }
+// ✅ API MỚI: Tìm trang của một tin đăng
+    @GetMapping("/user/{userId}/find-page")
+    public int getPageForListing(
+            @PathVariable Long userId,
+            @RequestParam Long listingId,
+            @RequestParam(defaultValue = "12") int size) {
+        return listingService.findPageForListing(userId, listingId, size);
+    }
 }

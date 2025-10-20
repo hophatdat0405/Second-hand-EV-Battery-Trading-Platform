@@ -20,7 +20,7 @@ public class ProductDetailDTO {
     private String productType;
     private Long price;
     private String description;
-    private String status;
+   
 
     // --- Thông tin từ ProductImage ---
     private List<String> imageUrls;
@@ -59,7 +59,7 @@ public class ProductDetailDTO {
         this.productType = product.getProductType();
         this.price = product.getPrice();
         this.description = product.getDescription();
-        this.status = product.getStatus();
+    
 
         // Mapping from List<ProductImage>
         if (images != null) {

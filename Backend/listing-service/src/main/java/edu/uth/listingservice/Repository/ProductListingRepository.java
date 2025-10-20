@@ -28,7 +28,8 @@ public interface ProductListingRepository extends JpaRepository<ProductListing, 
  
      ProductListing findByProduct_ProductId(Long productId);
 
-  
+  // ✅ HÀM MỚI: Lấy tất cả tin đăng của user, sắp xếp theo updatedAt
+    List<ProductListing> findByUserIdOrderByUpdatedAtDesc(Long userId);
 
     @Query(value = "SELECT pl.* FROM product_listings pl JOIN products p ON pl.product_id = p.product_id " +
                    "WHERE pl.listing_status = 'ACTIVE' " +

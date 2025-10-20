@@ -1,11 +1,11 @@
-// File mới: edu/uth/listingservice/Controller/AdminListingController.java
+
 
 package edu.uth.listingservice.Controller;
 
 import edu.uth.listingservice.DTO.AdminRejectDTO;
 import edu.uth.listingservice.Model.ListingStatus;
 import edu.uth.listingservice.Model.ProductListing;
-import edu.uth.listingservice.Service.AdminListingService; // Sẽ tạo service này ở bước 3
+import edu.uth.listingservice.Service.AdminListingService; 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
