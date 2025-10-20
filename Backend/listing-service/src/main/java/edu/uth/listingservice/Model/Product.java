@@ -44,7 +44,7 @@ private Long price;
 
     private String description;
 
-    private String status;
+
 
     @Column(name = "created_at")
     private Date createdAt = new Date();

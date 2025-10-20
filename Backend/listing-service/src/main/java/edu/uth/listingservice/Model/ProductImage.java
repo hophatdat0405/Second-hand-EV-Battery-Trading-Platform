@@ -25,7 +25,6 @@ public class ProductImage {
     @Column(name = "image_url", nullable = false)
     private String imageUrl;
 
-    @Column(name = "image_type")
-    private String imageType;
+
 }
 
