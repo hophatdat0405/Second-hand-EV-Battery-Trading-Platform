@@ -1,9 +1,11 @@
+
 package edu.uth.listingservice.DTO;
 
 import edu.uth.listingservice.Model.Product;
 import edu.uth.listingservice.Model.ProductImage;
 import edu.uth.listingservice.Model.ProductListing;
 import edu.uth.listingservice.Model.ProductSpecification;
+import edu.uth.listingservice.Model.ListingStatus; // ✅ THÊM IMPORT
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -37,7 +39,6 @@ public class ProductDetailDTO {
     private Integer maxSpeed;
     private Integer rangePerCharge;
     private String color;
-    // ✅ ADD NEW FIELDS HERE
     private String chargeTime;
     private Long chargeCycles;
 
@@ -47,6 +48,8 @@ public class ProductDetailDTO {
     // --- Thông tin từ ProductListing ---
     private String phone;
     private String location;
+    private boolean verified; // ✅ THÊM TRƯỜNG MỚI
+    private ListingStatus listingStatus; // ✅ THÊM TRƯỜNG MỚI
 
     // --- Thông tin người bán ---
     private UserDTO seller;
@@ -81,8 +84,6 @@ public class ProductDetailDTO {
             this.maxSpeed = spec.getMaxSpeed();
             this.rangePerCharge = spec.getRangePerCharge();
             this.color = spec.getColor();
-            
-            // ✅ MAP NEW FIELDS HERE
             this.chargeTime = spec.getChargeTime();
             this.chargeCycles = spec.getChargeCycles();
 
@@ -96,6 +97,8 @@ public class ProductDetailDTO {
         if (listing != null) {
             this.phone = listing.getPhone();
             this.location = listing.getLocation();
+            this.verified = listing.isVerified(); // ✅ MAP TRƯỜNG MỚI
+            this.listingStatus = listing.getListingStatus(); // ✅ MAP TRƯỜNG MỚI
         }
 
         // Mapping from UserDTO
