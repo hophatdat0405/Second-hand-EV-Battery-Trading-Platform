@@ -20,7 +20,7 @@ public class NotificationService {
 
  public Notification createNotification(Long userId, String message, String link) {
         Notification notification = new Notification(userId, message, link);
-        // ✅ Trả về đối tượng notification sau khi lưu
+        //  Trả về đối tượng notification sau khi lưu
         return notificationRepository.save(notification);
     }
     public Page<Notification> getNotificationsForUser(Long userId, int page, int size) {
@@ -46,5 +46,9 @@ public class NotificationService {
 
     public void deleteNotification(Long notificationId) {
         notificationRepository.deleteById(notificationId);
+    }
+    @Transactional
+    public void deleteAllForUser(Long userId) {
+        notificationRepository.deleteAllByUserId(userId);
     }
 }

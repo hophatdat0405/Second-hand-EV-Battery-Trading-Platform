@@ -9,7 +9,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
-
+import org.springframework.data.repository.query.Param;
 public interface NotificationRepository extends JpaRepository<Notification, Long> {
 
     // Lấy thông báo theo phân trang
@@ -26,4 +26,13 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
     @Modifying
     @Query("UPDATE Notification n SET n.isRead = true WHERE n.userId = :userId AND n.isRead = false")
     void markAllAsReadByUserId(Long userId);
+
+    /**
+     * ✅ THÊM PHƯƠNG THỨC NÀY
+     * Xóa tất cả thông báo của một người dùng
+     */
+    @Transactional
+    @Modifying
+    @Query("DELETE FROM Notification n WHERE n.userId = :userId")
+    void deleteAllByUserId(@Param("userId") Long userId);
 }

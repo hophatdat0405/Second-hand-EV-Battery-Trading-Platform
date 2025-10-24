@@ -30,7 +30,7 @@ public class NotificationController {
         return notificationService.getUnreadNotificationCount(userId);
     }
 
-  // ✅ Sửa lại hàm này
+  //  Sửa lại hàm này
     @PostMapping("/mark-all-as-read/user/{userId}")
     public ResponseEntity<Void> markAllAsRead(@PathVariable Long userId) {
         notificationService.markAllAsRead(userId);
@@ -38,7 +38,7 @@ public class NotificationController {
         return ResponseEntity.noContent().build();
     }
 
-    // ✅ Sửa lại hàm này
+    //  Sửa lại hàm này
     @PostMapping("/{id}/read")
     public ResponseEntity<Void> markOneAsRead(@PathVariable Long id) {
         notificationService.markAsRead(id);
@@ -46,11 +46,16 @@ public class NotificationController {
         return ResponseEntity.noContent().build();
     }
 
-    // ✅ Sửa lại hàm này (DELETE thường trả về 204)
+    //  Sửa lại hàm này (DELETE thường trả về 204)
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteNotification(@PathVariable Long id) {
         notificationService.deleteNotification(id);
         // Trả về 204 No Content
+        return ResponseEntity.noContent().build();
+    }
+    @DeleteMapping("/user/{userId}")
+    public ResponseEntity<Void> deleteAllNotifications(@PathVariable Long userId) {
+        notificationService.deleteAllForUser(userId);
         return ResponseEntity.noContent().build();
     }
 }
