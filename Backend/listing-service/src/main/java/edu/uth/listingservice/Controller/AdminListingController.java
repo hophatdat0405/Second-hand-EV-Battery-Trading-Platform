@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.data.domain.Pageable; // ✅ THÊM IMPORT NÀY
 
 @RestController
 @RequestMapping("/api/admin/listings") // URL base cho các API của admin
@@ -18,15 +19,15 @@ public class AdminListingController {
     @Autowired
     private AdminListingService adminListingService;
 
-    // 1. API lấy danh sách tin đăng theo trạng thái (VD: lấy các tin PENDING)
+  // ✅ THAY ĐỔI: Xóa page, size và dùng Pageable
     @GetMapping
     public Page<ProductListing> getListingsByStatus(
             @RequestParam(defaultValue = "PENDING") String status,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "15") int size
+            Pageable pageable // Spring sẽ tự động tạo đối tượng này từ URL
     ) {
         ListingStatus listingStatus = ListingStatus.valueOf(status.toUpperCase());
-        return adminListingService.getListingsByStatus(listingStatus, page, size);
+        // Truyền Pageable (đã bao gồm thông tin sort từ frontend) xuống service
+        return adminListingService.getListingsByStatus(listingStatus, pageable);
     }
 
     // 2. API để duyệt (approve) một tin đăng
@@ -49,12 +50,12 @@ public class AdminListingController {
         ProductListing verifiedListing = adminListingService.verifyListing(id);
         return ResponseEntity.ok(verifiedListing);
     }
+    // ✅ THAY ĐỔI: Xóa page, size và dùng Pageable
     @GetMapping("/search")
     public Page<ProductListing> searchListings(
             @RequestParam String query,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "15") int size
+            Pageable pageable
     ) {
-        return adminListingService.searchListings(query, page, size);
+        return adminListingService.searchListings(query, pageable);
     }
 }

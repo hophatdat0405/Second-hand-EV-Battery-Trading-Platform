@@ -98,7 +98,7 @@ private FileStorageService fileStorageService;
     }
     // --- End of unchanged methods ---
 
-    @Override
+   @Override
     @Transactional
     public ProductListing updateListingDetails(Long listingId, UpdateListingDTO dto) {
         ProductListing listing = getById(listingId);
@@ -141,7 +141,12 @@ private FileStorageService fileStorageService;
         }
         // --- End Update logic ---
 
-        listing.setListingStatus(ListingStatus.PENDING); // Always set to PENDING for re-approval
+        // ✅✅✅ THÊM DÒNG NÀY DƯỚI ĐÂY ✅✅✅
+        listing.setUpdatedOnce(true); // Đánh dấu là đã chỉnh sửa 1 lần
+        
+        listing.setVerified(false); // Bất kỳ chỉnh sửa nào cũng xóa trạng thái đã kiểm định
+        listing.setListingStatus(ListingStatus.PENDING); // Luôn set về PENDING để duyệt lại
+        
         listing.setListingDate(new Date());
         listing.setUpdatedAt(new Date());
         product.setUpdatedAt(new Date());
@@ -168,7 +173,6 @@ private FileStorageService fileStorageService;
 
         return savedListing;
     }
-
     @Override
     @Transactional
     public ProductListing markAsSold(Long listingId) {

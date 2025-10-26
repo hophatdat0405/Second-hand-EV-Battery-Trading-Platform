@@ -33,7 +33,7 @@ public class ProductListingController {
             @RequestParam(required = false) String type,
             @RequestParam(defaultValue = "date") String sortBy,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "6") int size) { // Mặc định 24 tin/trang
+            @RequestParam(defaultValue = "24") int size) { // Mặc định 24 tin/trang
         return listingService.getActiveListings(type, sortBy, page, size);
     }
     

@@ -27,10 +27,9 @@ public class AdminListingServiceImpl implements AdminListingService {
     private ProductListingRepository listingRepository;
 @Autowired
     private NotificationService notificationService;
-
-    @Override
-    public Page<ProductListing> getListingsByStatus(ListingStatus status, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("listingDate").descending());
+@Override
+    public Page<ProductListing> getListingsByStatus(ListingStatus status, Pageable pageable) {
+      
         return listingRepository.findByListingStatus(status, pageable);
     }
 
@@ -142,7 +141,7 @@ public class AdminListingServiceImpl implements AdminListingService {
         return savedListing;
     }
 
-    @Override
+  @Override
     @Transactional
     public ProductListing verifyListing(Long listingId) {
         ProductListing listing = listingRepository.findById(listingId)
@@ -154,13 +153,46 @@ public class AdminListingServiceImpl implements AdminListingService {
 
         listing.setVerified(true);
         listing.setUpdatedAt(new Date());
-        // No need to send WS message for verify action in this flow
-        return listingRepository.save(listing);
+        
+        // ✅ THAY ĐỔI: Gửi tin nhắn WS khi "Kiểm Định"
+        ProductListing savedListing = listingRepository.save(listing);
+
+        // Force load lazy-loaded product data
+        if (savedListing.getProduct() != null) {
+            Hibernate.initialize(savedListing.getProduct());
+        }
+
+        // --- Send 1: Gửi tin nhắn WS đến trang quản lý của User ---
+        messagingTemplate.convertAndSendToUser(
+            String.valueOf(savedListing.getUserId()),
+            "/topic/listingUpdates", // Gửi đến topic mà manage-listings.js đang nghe
+            savedListing // Gửi toàn bộ object đã được cập nhật
+        );
+
+        // --- Send 2: Gửi tin nhắn cập nhật cho Admin (giữ nguyên) ---
+        AdminListingUpdateDTO updateDTO = new AdminListingUpdateDTO(savedListing);
+        messagingTemplate.convertAndSend("/topic/admin/listingUpdate", updateDTO);
+
+
+        String userMessage = String.format("Tin đăng '%s' của bạn vừa được gắn nhãn kiểm định.", savedListing.getProduct().getProductName());
+        String userLink = String.format("/edit_news.html?listing_id=%d", savedListing.getListingId());
+        Notification userNotification = notificationService.createNotification(savedListing.getUserId(), userMessage, userLink);
+
+        if (userNotification != null) {
+             messagingTemplate.convertAndSendToUser(
+                String.valueOf(savedListing.getUserId()),
+                "/topic/notifications", // Topic for the bell
+                userNotification
+            );
+        }
+        // --- Kết thúc Bổ sung ---
+        return savedListing;
     }
     
+
     @Override
-    public Page<ProductListing> searchListings(String query, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("listingDate").descending());
+    public Page<ProductListing> searchListings(String query, Pageable pageable) {
+        // Pageable pageable = PageRequest.of(page, size, Sort.by("listingDate").descending()); // <-- XÓA DÒNG NÀY
         return listingRepository.searchByProductNameOrUserId(query, pageable);
     }
 }
