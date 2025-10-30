@@ -14,7 +14,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 @Service
 public class SearchService {
 
@@ -25,7 +24,6 @@ public class SearchService {
 
     private static final Map<String,String> CONDITION_VALUE_TO_LABEL = new HashMap<>();
     static {
-        // BỘ GIÁ TRỊ THỐNG NHẤT
         CONDITION_VALUE_TO_LABEL.put("99-100", "Mới 99% (Lướt)");
         CONDITION_VALUE_TO_LABEL.put("85-98", "Tốt 85-98% (Đã sử dụng)");
         CONDITION_VALUE_TO_LABEL.put("70-84", "Khá 70-84% (Cần bảo dưỡng)");
@@ -34,14 +32,48 @@ public class SearchService {
     @Value("${product.service.url:http://localhost:8080}")
     private String listingServiceBaseUrl;
 
-    /**
-     * Normalize a string: remove diacritics, lower-case and trim.
-     * Example: "Hà Nội" -> "ha noi"
-     */
     private String normalize(String s) {
         if (s == null) return "";
         String n = Normalizer.normalize(s, Normalizer.Form.NFD);
         return n.replaceAll("\\p{InCombiningDiacriticalMarks}+", "").toLowerCase().trim();
+    }
+
+    // map requested type (many variants) -> canonical type (car, motorbike, bike, battery)
+    private String mapRequestedTypeToCanonical(String requestedType) {
+        if (requestedType == null) return null;
+        String r = requestedType.trim().toLowerCase();
+        r = r.replaceAll("[\\s_]+", " ");
+
+        Map<String, String> MAP = new HashMap<>();
+        // car
+        MAP.put("oto", "car"); MAP.put("o to", "car"); MAP.put("ô tô", "car"); MAP.put("o-to", "car");
+        MAP.put("car", "car"); MAP.put("ôto", "car"); MAP.put("xe ôtô", "car"); MAP.put("xe oto", "car");
+        // motorbike
+        MAP.put("xemay", "motorbike"); MAP.put("xe may", "motorbike"); MAP.put("xe máy", "motorbike");
+        MAP.put("xe-may", "motorbike"); MAP.put("motorbike", "motorbike"); MAP.put("motorcycle", "motorbike");
+        MAP.put("motor", "motorbike"); MAP.put("xe máy điện", "motorbike");
+        // bike
+        MAP.put("xedap", "bike"); MAP.put("xe dap", "bike"); MAP.put("xe đạp", "bike");
+        MAP.put("bike", "bike"); MAP.put("bicycle", "bike");
+        // battery
+        MAP.put("pin", "battery"); MAP.put("battery", "battery");
+
+        if (MAP.containsKey(r)) return MAP.get(r);
+
+        // fuzzy: remove non-alphanum and compare
+        String normalized = r.replaceAll("[^a-z0-9]", "");
+        for (Map.Entry<String, String> e : MAP.entrySet()) {
+            String keynorm = e.getKey().replaceAll("[^a-z0-9]", "");
+            if (keynorm.equals(normalized)) return e.getValue();
+        }
+
+        // contains fallback
+        if (r.contains("oto") || r.contains("ô tô") || r.contains("car")) return "car";
+        if (r.contains("xemay") || r.contains("xe máy") || r.contains("motor")) return "motorbike";
+        if (r.contains("xedap") || r.contains("xe đạp") || r.contains("bike")) return "bike";
+        if (r.contains("pin") || r.contains("battery")) return "battery";
+
+        return null;
     }
 
     public List<SearchResultDTO> search(
@@ -57,78 +89,76 @@ public class SearchService {
             String mileageRange,
             String conditionName
     ) {
-        // 1) Lấy tất cả listings từ listing-service qua Feign
-        List<ProductListingDTO> listings;
+        // map type -> canonical
+        final String canonicalType = mapRequestedTypeToCanonical(type);
+
+        // 1) Try to call listing-service with canonicalType so listing-service can filter server-side
+        List<ProductListingDTO> listings = Collections.emptyList();
+        boolean usedServerSideTypeFilter = false;
         try {
-            listings = listingClient.getAllListings();
-            if (listings == null) listings = Collections.emptyList();
+            if (canonicalType != null) {
+                // try server-side filtered call
+                listings = listingClient.getAllListings(canonicalType, "date", 500);
+                if (listings == null) listings = Collections.emptyList();
+                usedServerSideTypeFilter = true;
+            } else {
+                // no canonical type -> fetch all
+                listings = listingClient.getAllListings(null, "date", 500);
+                if (listings == null) listings = Collections.emptyList();
+            }
         } catch (Exception ex) {
-            ex.printStackTrace();
-            return Collections.emptyList();
+            log.warn("listingClient.getAllListings(...) failed with canonicalType={}, will fallback to permissive call. Error: {}",
+                    canonicalType, ex.toString());
+            // fallback: try calling parameterless method if available
+            try {
+                // if your ListingClient still has single method without params, uncomment the next line:
+                // listings = listingClient.getAllListings();
+                // Otherwise leave listings empty
+                listings = Collections.emptyList();
+            } catch (Exception ex2) {
+                log.error("Fallback listing fetch failed: {}", ex2.toString());
+                listings = Collections.emptyList();
+            }
         }
 
-        // 2) Xây predicate theo params
+        // 2) Build predicates for other filters.
         List<Predicate<ProductListingDTO>> predicates = new ArrayList<>();
 
-        // type (keep original strict match, case-insensitive)
-        if (StringUtils.hasText(type) && !"all".equalsIgnoreCase(type)) {
-    final String requestedRaw = type.trim();
-    final String requested = normalize(requestedRaw);
+        // If listing-service didn't apply type filter (canonicalType == null OR server call failed),
+        // then add type predicate on server-side (client-side) to keep behavior robust.
+        if (!usedServerSideTypeFilter && StringUtils.hasText(type) && !"all".equalsIgnoreCase(type)) {
+            final String requestedRaw = type.trim();
+            final String mappedRequested = mapRequestedTypeToCanonical(requestedRaw);
+            final String mappedRequestedSafe = mappedRequested != null ? mappedRequested : normalize(requestedRaw);
 
-    // alias map: nhiều biến thể -> canonical key
-    final Map<String, String> TYPE_ALIAS = new HashMap<>();
-    TYPE_ALIAS.put("xe may", "motorcycle");
-    TYPE_ALIAS.put("xe-may", "motorcycle");
-    TYPE_ALIAS.put("xemay", "motorcycle");
-    TYPE_ALIAS.put("xe may dien", "motorcycle");
-    TYPE_ALIAS.put("xe-máy-điện", "motorcycle");
-    TYPE_ALIAS.put("xe máy", "motorcycle");
-    TYPE_ALIAS.put("motorbike", "motorcycle");
-    TYPE_ALIAS.put("motorcycle", "motorcycle");
+            predicates.add(pl -> {
+                ProductDTO p = pl.getProduct();
+                if (p == null) return false;
+                String ptRaw = p.getProductType();
+                String pt = normalize(ptRaw);
 
-    TYPE_ALIAS.put("xe dap", "bike");
-    TYPE_ALIAS.put("xe-dap", "bike");
-    TYPE_ALIAS.put("xedap", "bike");
-    TYPE_ALIAS.put("xe dap dien", "bike");
-    TYPE_ALIAS.put("bike", "bike");
-    TYPE_ALIAS.put("bicycle", "bike");
+                // map productType to canonical quickly
+                String ptCanon = mapRequestedTypeToCanonical(ptRaw);
+                if (ptCanon != null && ptCanon.equals(mappedRequestedSafe)) return true;
 
-    TYPE_ALIAS.put("oto", "car");
-    TYPE_ALIAS.put("o to", "car");
-    TYPE_ALIAS.put("ô tô", "car");
-    TYPE_ALIAS.put("car", "car");
+                // contains checks on productType/name/brand
+                if (pt.contains(mappedRequestedSafe) || mappedRequestedSafe.contains(pt)) return true;
 
-    TYPE_ALIAS.put("pin", "battery");
-    TYPE_ALIAS.put("battery", "battery");
+                ProductSpecificationDTO s = p.getSpecification();
+                String specBrand = s != null && s.getBrand() != null ? normalize(s.getBrand()) : "";
+                String name = p.getProductName() != null ? normalize(p.getProductName()) : "";
+                if (!specBrand.isEmpty() && (specBrand.contains(mappedRequestedSafe) || mappedRequestedSafe.contains(specBrand))) return true;
+                if (!name.isEmpty() && (name.contains(mappedRequestedSafe) || mappedRequestedSafe.contains(name))) return true;
 
-    // map requested -> canonical (fallback: requested itself)
-    final String mappedRequested = TYPE_ALIAS.getOrDefault(requested, requested);
+                // final keyword fallback
+                if ("car".equals(mappedRequestedSafe) && (pt.contains("car") || pt.contains("oto") || name.contains("vinfast"))) return true;
+                if ("motorbike".equals(mappedRequestedSafe) && (pt.contains("motor") || pt.contains("xemay") || name.contains("xemay"))) return true;
+                if ("bike".equals(mappedRequestedSafe) && (pt.contains("bike") || pt.contains("xedap") || name.contains("xedap"))) return true;
+                if ("battery".equals(mappedRequestedSafe) && (pt.contains("battery") || pt.contains("pin") || name.contains("pin"))) return true;
 
-    // add predicate: normalize productType and compare flexibly
-    predicates.add(pl -> {
-        ProductDTO p = pl.getProduct();
-        if (p == null || p.getProductType() == null) return false;
-        String ptRaw = p.getProductType();
-        String pt = normalize(ptRaw);
-
-        // 1) direct canonical equality
-        String ptMapped = TYPE_ALIAS.getOrDefault(pt, pt);
-
-        if (ptMapped.equals(mappedRequested)) return true;
-
-        // 2) contains checks (handle cases like "xe may dien - electric motorcycle" etc.)
-        if (pt.contains(mappedRequested) || mappedRequested.contains(pt)) return true;
-
-        // 3) sometimes productType stores descriptive phrase containing english/vietnamese words
-        // check if normalized productType contains key words used in requestedRaw
-        if (!requestedRaw.equals(mappedRequested)) {
-            String reqToken = normalize(requestedRaw).replaceAll("[^a-z0-9\\s-]", "").trim();
-            if (!reqToken.isEmpty() && (pt.contains(reqToken) || reqToken.contains(pt))) return true;
+                return false;
+            });
         }
-
-        return false;
-    });
-}
 
         // q (tìm kiếm chính) -> dùng normalize + contains
         if (StringUtils.hasText(q)) {
@@ -197,65 +227,57 @@ public class SearchService {
             });
         }
 
-        // conditionName -> contains + normalize
+        // conditionName -> contains + normalize (existing logic)
         if (StringUtils.hasText(conditionName)) {
-        String rawCond = conditionName.trim();
-        String cnNormalized = normalize(rawCond);
+            String rawCond = conditionName.trim();
+            String cnNormalized = normalize(rawCond);
 
-        // 1. Phân tích giá trị range từ frontend (vd: "0-69", "70-84")
-        Integer parsedMin = null;
-        Integer parsedMax = null;
-        boolean isRange = rawCond.contains("-");
-        
-        if (isRange) {
-            try {
-                String[] parts = rawCond.split("-");
-                String a = parts.length > 0 ? parts[0].replaceAll("[^0-9]", "") : "";
-                String b = parts.length > 1 ? parts[1].replaceAll("[^0-9]", "") : "";
-                if (!a.isEmpty()) parsedMin = Integer.valueOf(a);
-                if (!b.isEmpty()) parsedMax = Integer.valueOf(b);
-                if (parsedMin != null && parsedMax == null && parsedMin < 100) parsedMax = 100;
-            } catch (Exception ex) {
-                log.warn("Lỗi parse numeric range cho conditionName: {}", rawCond);
+            Integer parsedMin = null;
+            Integer parsedMax = null;
+            boolean isRange = rawCond.contains("-");
+
+            if (isRange) {
+                try {
+                    String[] parts = rawCond.split("-");
+                    String a = parts.length > 0 ? parts[0].replaceAll("[^0-9]", "") : "";
+                    String b = parts.length > 1 ? parts[1].replaceAll("[^0-9]", "") : "";
+                    if (!a.isEmpty()) parsedMin = Integer.valueOf(a);
+                    if (!b.isEmpty()) parsedMax = Integer.valueOf(b);
+                    if (parsedMin != null && parsedMax == null && parsedMin < 100) parsedMax = 100;
+                } catch (Exception ex) {
+                    log.warn("Lỗi parse numeric range cho conditionName: {}", rawCond);
+                }
             }
+
+            final Integer finalMin = parsedMin;
+            final Integer finalMax = parsedMax;
+            final String finalMappedLabel = CONDITION_VALUE_TO_LABEL.get(rawCond.replaceAll("\\s+", ""));
+
+            predicates.add(pl -> {
+                ProductSpecificationDTO s = pl.getProduct() != null ? pl.getProduct().getSpecification() : null;
+                if (s == null || s.getCondition() == null || s.getCondition().getConditionName() == null) {
+                    return false;
+                }
+                String itemCondRaw = s.getCondition().getConditionName();
+                String itemCondName = normalize(itemCondRaw);
+
+                if (isRange && finalMin != null && finalMax != null) {
+                    java.util.regex.Matcher m = java.util.regex.Pattern.compile("(\\d{1,3})\\s*%?").matcher(itemCondRaw);
+                    if (m.find()) {
+                        try {
+                            int val = Integer.parseInt(m.group(1));
+                            if (val >= finalMin && val <= finalMax) return true;
+                        } catch (Exception ex) { }
+                    }
+                    if (finalMappedLabel != null && itemCondName.contains(normalize(finalMappedLabel))) return true;
+                }
+
+                if (itemCondName.contains(cnNormalized)) return true;
+                return false;
+            });
         }
 
-        final Integer finalMin = parsedMin;
-        final Integer finalMax = parsedMax;
-        final String finalMappedLabel = CONDITION_VALUE_TO_LABEL.get(rawCond.replaceAll("\\s+", ""));
-
-        predicates.add(pl -> {
-            ProductSpecificationDTO s = pl.getProduct() != null ? pl.getProduct().getSpecification() : null;
-            if (s == null || s.getCondition() == null || s.getCondition().getConditionName() == null) {
-                return false;
-            }
-            String itemCondRaw = s.getCondition().getConditionName(); 
-            String itemCondName = normalize(itemCondRaw);
-
-            // A) Nếu giá trị là range (vd: "0-69"), ưu tiên kiểm tra bằng numeric range
-            if (isRange && finalMin != null && finalMax != null) {
-                // Trích xuất phần trăm từ itemCondRaw (vd: "Tốt 87% (Đã sử dụng)" -> 87)
-                java.util.regex.Matcher m = java.util.regex.Pattern.compile("(\\d{1,3})\\s*%?").matcher(itemCondRaw);
-                if (m.find()) {
-                    try {
-                        int val = Integer.parseInt(m.group(1));
-                        if (val >= finalMin && val <= finalMax) return true;
-                    } catch (Exception ex) {
-                        // Bỏ qua lỗi parse số
-                    }
-                }
-                
-                // DỰ PHÒNG TEXT MATCH
-                if (finalMappedLabel != null && itemCondName.contains(normalize(finalMappedLabel))) return true;
-            }
-
-            // B) Khớp bằng text/nhãn: Dùng cho mọi trường hợp
-            if (itemCondName.contains(cnNormalized)) return true;
-            
-            return false;
-        });
-      }
-        //Quãng đường
+        // mileage parsing (same as before)
         Long mileageMin = null, mileageMax = null;
         if (StringUtils.hasText(mileageRange)) {
             String mr = mileageRange.trim();
@@ -269,9 +291,7 @@ public class SearchService {
                 } else if (mr.startsWith(">")) {
                     mileageMin = Long.parseLong(mr.replaceAll("[^0-9]", ""));
                 }
-            } catch (Exception ex) {
-                // ignore parse error
-            }
+            } catch (Exception ex) { }
             if (mileageMin != null || mileageMax != null) {
                 Long finalMin = mileageMin;
                 Long finalMax = mileageMax;
@@ -286,7 +306,7 @@ public class SearchService {
             }
         }
 
-        // 3) Áp dụng predicates để filter
+        // 3) apply predicates
         List<ProductListingDTO> filtered = listings.stream()
                 .filter(pl -> {
                     for (Predicate<ProductListingDTO> pred : predicates) {
@@ -297,7 +317,7 @@ public class SearchService {
                 .sorted(Comparator.comparing(ProductListingDTO::getListingDate, Comparator.nullsLast(Comparator.reverseOrder())))
                 .collect(Collectors.toList());
 
-        // 4) Map sang SearchResultDTO
+        // 4) map to SearchResultDTO
         List<SearchResultDTO> results = filtered.stream().map(pl -> {
             ProductDTO p = pl.getProduct();
             ProductSpecificationDTO s = p != null ? p.getSpecification() : null;
@@ -307,34 +327,28 @@ public class SearchService {
                 dto.setProductName(p.getProductName());
                 dto.setProductType(p.getProductType());
                 dto.setPrice(p.getPrice());
-
                 if (p.getImages() != null && !p.getImages().isEmpty()) {
                     String base = (listingServiceBaseUrl != null) ? listingServiceBaseUrl.replaceAll("/$", "") : "";
                     List<String> urls = p.getImages().stream()
-                    .map(ProductImageDTO::getImageUrl)
-                    .filter(Objects::nonNull)
-                    .map(u -> {
-                        String trimmed = u.trim();
-                        if (trimmed.isEmpty()) return null;
-                        // absolute url -> giữ nguyên
-                        if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) return trimmed;
-                        // protocol-relative -> thêm http:
-                        if (trimmed.startsWith("//")) return "http:" + trimmed;
-                        // đường dẫn tương đối bắt đầu bằng /
-                        if (trimmed.startsWith("/")) {
-                            if (!base.isEmpty()) return base + trimmed;
-                            return trimmed;
-                        }
-                        // chỉ tên file hoặc relative path không bắt đầu bằng /
-                        if (!base.isEmpty()) return base + "/" + trimmed;
-                        return trimmed;
-                    })
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toList());
+                            .map(ProductImageDTO::getImageUrl)
+                            .filter(Objects::nonNull)
+                            .map(u -> {
+                                String trimmed = u.trim();
+                                if (trimmed.isEmpty()) return null;
+                                if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) return trimmed;
+                                if (trimmed.startsWith("//")) return "http:" + trimmed;
+                                if (trimmed.startsWith("/")) {
+                                    if (!base.isEmpty()) return base + trimmed;
+                                    return trimmed;
+                                }
+                                if (!base.isEmpty()) return base + "/" + trimmed;
+                                return trimmed;
+                            })
+                            .filter(Objects::nonNull)
+                            .collect(Collectors.toList());
                     if (!urls.isEmpty()) dto.setImageUrls(urls);
                 }
-        }
-
+            }
             dto.setLocation(pl.getLocation());
             if (s != null) {
                 dto.setYearOfManufacture(s.getYearOfManufacture());
