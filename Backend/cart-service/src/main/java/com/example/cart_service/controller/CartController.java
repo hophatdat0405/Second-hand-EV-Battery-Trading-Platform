@@ -1,18 +1,25 @@
 package com.example.cart_service.controller;
 
 import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.example.cart_service.client.ProductServiceClient;
 import com.example.cart_service.dto.ProductDetailDTO;
 import com.example.cart_service.model.Cart;
 import com.example.cart_service.repository.CartRepository;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 
 @RestController //biến controller thành API trả JSON thay vì view html
 @RequestMapping("/api/carts") //đặt tiền tố đường dẫn
@@ -101,4 +108,16 @@ public class CartController {
         }
         return ResponseEntity.noContent().build();
     }
+
+    // ✅ Lấy giỏ hàng theo ID (cho transaction-service gọi)
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getCartById(@PathVariable Long id) {
+        return cartRepository.findById(id)
+                .map(cart -> ResponseEntity.ok(Map.of(
+                        "productName", cart.getProductname(),
+                        "price", cart.getPrice()
+                )))
+                .orElse(ResponseEntity.notFound().build());
+    }
+
 }
