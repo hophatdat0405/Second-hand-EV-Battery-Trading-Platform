@@ -42,7 +42,7 @@ public class ProductSpecification {
 
     private String color;
     
-    // ✅ NEW FIELDS ADDED BELOW
+    //  NEW FIELDS ADDED BELOW
     
     @Column(name = "charge_time")
     private String chargeTime; // Ví dụ: "6-8 giờ", "45 phút"

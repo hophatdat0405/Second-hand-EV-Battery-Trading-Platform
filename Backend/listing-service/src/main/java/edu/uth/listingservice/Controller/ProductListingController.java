@@ -27,7 +27,7 @@ public class ProductListingController {
     @Autowired
     private ProductListingService listingService;
 
-    // ✅ THAY ĐỔI HÀM NÀY
+    //  THAY ĐỔI HÀM NÀY
     @GetMapping
     public Page<ProductListing> getFilteredListings(
             @RequestParam(required = false) String type,
@@ -110,7 +110,7 @@ public ResponseEntity<Void> deleteListing(@PathVariable Long id) {
     listingService.delete(id);
     return ResponseEntity.noContent().build();
 }
-// ✅ API MỚI: Tìm trang của một tin đăng
+//  API MỚI: Tìm trang của một tin đăng
     @GetMapping("/user/{userId}/find-page")
     public int getPageForListing(
             @PathVariable Long userId,

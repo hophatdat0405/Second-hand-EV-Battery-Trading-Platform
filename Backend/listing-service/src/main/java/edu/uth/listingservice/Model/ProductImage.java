@@ -19,7 +19,7 @@ public class ProductImage {
 
     @ManyToOne
     @JoinColumn(name = "product_id")
-     @JsonBackReference // ✅ THÊM DÒNG NÀY (Đánh dấu đây là "con", sẽ không được render ra JSON)
+     @JsonBackReference //  THÊM DÒNG NÀY (Đánh dấu đây là "con", sẽ không được render ra JSON)
     private Product product;
 
     @Column(name = "image_url", nullable = false)

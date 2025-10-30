@@ -75,7 +75,7 @@ private FileStorageService fileStorageService;
         existing.setUpdatedAt(new Date());
         return listingRepository.save(existing);
     }
-   // ✅ THAY ĐỔI HÀM NÀY
+   //  THAY ĐỔI HÀM NÀY
     @Override
     public Page<ProductListing> getActiveListings(String type, String sortBy, int page, int size) {
         Sort sort = Sort.by(Sort.Direction.DESC, "listingDate");
@@ -141,7 +141,7 @@ private FileStorageService fileStorageService;
         }
         // --- End Update logic ---
 
-        // ✅✅✅ THÊM DÒNG NÀY DƯỚI ĐÂY ✅✅✅
+        // THÊM DÒNG NÀY DƯỚI ĐÂY
         listing.setUpdatedOnce(true); // Đánh dấu là đã chỉnh sửa 1 lần
         
         listing.setVerified(false); // Bất kỳ chỉnh sửa nào cũng xóa trạng thái đã kiểm định

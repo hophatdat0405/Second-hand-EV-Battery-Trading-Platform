@@ -36,12 +36,12 @@ public class ProductListing {
     private Long userId; // Không FK vì lấy từ User service
 
     @Column(name = "phone", nullable = false)
-    private String phone; // ✅ Thêm số điện thoại liên hệ
+    private String phone; //  Thêm số điện thoại liên hệ
 
     @Column(name = "location", nullable = false)
-    private String location; // ✅ Thêm khu vực giao dịch
+    private String location; //  Thêm khu vực giao dịch
 
-    // ✅ SỬA ĐỔI TẠI ĐÂY
+    //  SỬA ĐỔI TẠI ĐÂY
     @Enumerated(EnumType.STRING) // Báo cho JPA lưu tên của enum (VD: 'PENDING')
     @Column(name = "listing_status", nullable = false)
     private ListingStatus listingStatus = ListingStatus.PENDING; // Gán giá trị mặc định

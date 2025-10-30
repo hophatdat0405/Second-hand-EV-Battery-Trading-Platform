@@ -5,7 +5,7 @@ import edu.uth.listingservice.Model.Product;
 import edu.uth.listingservice.Model.ProductImage;
 import edu.uth.listingservice.Model.ProductListing;
 import edu.uth.listingservice.Model.ProductSpecification;
-import edu.uth.listingservice.Model.ListingStatus; // ✅ THÊM IMPORT
+import edu.uth.listingservice.Model.ListingStatus; 
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -48,8 +48,8 @@ public class ProductDetailDTO {
     // --- Thông tin từ ProductListing ---
     private String phone;
     private String location;
-    private boolean verified; // ✅ THÊM TRƯỜNG MỚI
-    private ListingStatus listingStatus; // ✅ THÊM TRƯỜNG MỚI
+    private boolean verified; 
+    private ListingStatus listingStatus; 
 
     // --- Thông tin người bán ---
     private UserDTO seller;
@@ -97,8 +97,8 @@ public class ProductDetailDTO {
         if (listing != null) {
             this.phone = listing.getPhone();
             this.location = listing.getLocation();
-            this.verified = listing.isVerified(); // ✅ MAP TRƯỜNG MỚI
-            this.listingStatus = listing.getListingStatus(); // ✅ MAP TRƯỜNG MỚI
+            this.verified = listing.isVerified(); 
+            this.listingStatus = listing.getListingStatus(); 
         }
 
         // Mapping from UserDTO

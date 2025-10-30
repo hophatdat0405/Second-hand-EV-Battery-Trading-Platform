@@ -13,7 +13,7 @@ public class PricingServiceImpl implements PricingService {
     private final Logger logger = LoggerFactory.getLogger(PricingServiceImpl.class);
     private final RestTemplate restTemplate = new RestTemplate();
 
-    // ⭐⭐⭐ ĐÃ SỬA LỖI TẠI ĐÂY ⭐⭐⭐
+    
     // URL này trỏ đến service Python (app.py) đang chạy trên máy local của bạn
     private final String mlApiUrl = "http://localhost:5000/predict";
 

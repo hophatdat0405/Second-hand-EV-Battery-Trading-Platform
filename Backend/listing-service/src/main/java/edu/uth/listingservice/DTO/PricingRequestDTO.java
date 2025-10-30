@@ -20,7 +20,7 @@ public class PricingRequestDTO {
     private Integer chargeCycles;
     private String batteryLifespan;
 
-    // --- ✅ 3 TRƯỜNG BỊ THIẾU (BỔ SUNG) ---
+    // --- 3 TRƯỜNG BỊ THIẾU (BỔ SUNG) ---
     private Integer maxSpeed;
     private String color;
     private String chargeTime; // (Nên thêm cả trường này, vì JS cũng gửi nó)

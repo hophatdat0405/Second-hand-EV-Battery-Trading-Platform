@@ -10,7 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.data.domain.Pageable; // ✅ THÊM IMPORT NÀY
+import org.springframework.data.domain.Pageable;
 
 @RestController
 @RequestMapping("/api/admin/listings") // URL base cho các API của admin
@@ -19,7 +19,7 @@ public class AdminListingController {
     @Autowired
     private AdminListingService adminListingService;
 
-  // ✅ THAY ĐỔI: Xóa page, size và dùng Pageable
+  //  THAY ĐỔI: Xóa page, size và dùng Pageable
     @GetMapping
     public Page<ProductListing> getListingsByStatus(
             @RequestParam(defaultValue = "PENDING") String status,
@@ -50,7 +50,7 @@ public class AdminListingController {
         ProductListing verifiedListing = adminListingService.verifyListing(id);
         return ResponseEntity.ok(verifiedListing);
     }
-    // ✅ THAY ĐỔI: Xóa page, size và dùng Pageable
+    //  THAY ĐỔI: Xóa page, size và dùng Pageable
     @GetMapping("/search")
     public Page<ProductListing> searchListings(
             @RequestParam String query,

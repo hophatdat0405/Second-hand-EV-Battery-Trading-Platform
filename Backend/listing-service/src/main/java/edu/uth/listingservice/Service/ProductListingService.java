@@ -22,6 +22,6 @@ ProductListing markAsSold(Long listingId);
     // Phương thức để xóa một ảnh cụ thể bằng ID của ảnh
     void deleteImageFromListing(Long listingId, Long imageId);
     Page<ProductListing> getByUserId(Long userId, int page, int size);
-   // ✅ HÀM MỚI:
+   //  HÀM MỚI:
     int findPageForListing(Long userId, Long listingId, int pageSize);
 }

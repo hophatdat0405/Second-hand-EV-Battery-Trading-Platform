@@ -23,7 +23,7 @@ public class ProductDetailService {
     @Autowired private ProductImageRepository imageRepository;
     @Autowired private ProductSpecificationRepository specificationRepository;
     @Autowired private ProductListingRepository listingRepository;
-    // ⚠️ Không cần conditionRepository nữa
+    //  Không cần conditionRepository nữa
 
     public ProductDetailDTO getProductDetail(Long productId) {
 
@@ -34,9 +34,9 @@ public class ProductDetailService {
         ProductSpecification spec = specificationRepository.findByProduct_ProductId(productId);
         ProductListing listing = listingRepository.findByProduct_ProductId(productId);
 
-        // ⚠️ Không cần lấy ProductCondition riêng nữa vì nó đã có trong 'spec'
+        //  Không cần lấy ProductCondition riêng nữa vì nó đã có trong 'spec'
 
-        // ✅ Tạm tạo UserDTO để trả ra, sau này kết nối User Service thật
+        //  Tạm tạo UserDTO để trả ra, sau này kết nối User Service thật
         UserDTO seller = null;
         if (listing != null && listing.getUserId() != null) {
             seller = new UserDTO();
@@ -45,7 +45,7 @@ public class ProductDetailService {
             seller.setEmail("seller@example.com"); // Tạm thời
         }
 
-        // ✅ Dùng constructor của DTO mới để tạo đối tượng trả về một cách gọn gàng
+        //  Dùng constructor của DTO mới để tạo đối tượng trả về một cách gọn gàng
         return new ProductDetailDTO(product, images, spec, listing, seller);
     }
 }
