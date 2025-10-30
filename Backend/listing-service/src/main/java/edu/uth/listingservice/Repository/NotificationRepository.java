@@ -28,7 +28,7 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
     void markAllAsReadByUserId(Long userId);
 
     /**
-     * ✅ THÊM PHƯƠNG THỨC NÀY
+     *  THÊM PHƯƠNG THỨC NÀY
      * Xóa tất cả thông báo của một người dùng
      */
     @Transactional

@@ -18,7 +18,7 @@ public interface ProductListingRepository extends JpaRepository<ProductListing, 
 // Phương thức này dùng cho trang quản lý của Admin
     Page<ProductListing> findByListingStatus(ListingStatus status, Pageable pageable);
 
-// ✅ SỬA LỖI TẠI ĐÂY: Đổi kiểu trả về thành "Page"
+//  SỬA LỖI TẠI ĐÂY: Đổi kiểu trả về thành "Page"
     // Dùng cho getActiveListings để lọc theo loại sản phẩm.
     @Query("SELECT pl FROM ProductListing pl WHERE pl.listingStatus = :status AND pl.product.productType = :type")
     Page<ProductListing> findByStatusAndProductType(@Param("status") ListingStatus status, @Param("type") String type, Pageable pageable);
@@ -28,7 +28,7 @@ public interface ProductListingRepository extends JpaRepository<ProductListing, 
  
      ProductListing findByProduct_ProductId(Long productId);
 
-  // ✅ HÀM MỚI: Lấy tất cả tin đăng của user, sắp xếp theo updatedAt
+  //  HÀM MỚI: Lấy tất cả tin đăng của user, sắp xếp theo updatedAt
     List<ProductListing> findByUserIdOrderByUpdatedAtDesc(Long userId);
 
     @Query(value = "SELECT pl.* FROM product_listings pl JOIN products p ON pl.product_id = p.product_id " +
