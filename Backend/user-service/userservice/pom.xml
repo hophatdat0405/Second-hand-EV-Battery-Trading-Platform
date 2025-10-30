@@ -30,6 +30,20 @@
        explicit versions are used for jjwt-api / jjwt-impl / jjwt-jackson in the <dependencies> section. -->
 
   <dependencies>
+
+
+
+    <!-- Spring OAuth2 client -->
+<dependency>
+  <groupId>org.springframework.boot</groupId>
+  <artifactId>spring-boot-starter-oauth2-client</artifactId>
+</dependency>
+
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-actuator</artifactId>
+    </dependency>
+
     <!-- Spring Web / JPA / validation -->
     <dependency>
       <groupId>org.springframework.boot</groupId>

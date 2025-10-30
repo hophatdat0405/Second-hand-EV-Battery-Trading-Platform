@@ -84,8 +84,8 @@ public ResponseEntity<?> updateProfile(
                 req.getName(),
                 incomingEmail,
                 incomingPhone,
-                req.getAddress(),
-                req.getCityName());
+                req.getAddress(), incomingPhone
+                );
 
         // If email changed, inform client so it can force re-login if desired
         String note = null;

@@ -2,6 +2,8 @@ package edu.uth.userservice.model;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "users")
@@ -23,9 +25,6 @@ public class User {
 
     private String address;
 
-    @Column(name = "city_name")
-    private String cityName;
-
     @Column(name = "account_status")
     private String accountStatus = "active";
 
@@ -37,6 +36,15 @@ public class User {
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt = LocalDateTime.now();
+
+    // Mapped roles
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+        name = "user_roles",
+        joinColumns = @JoinColumn(name = "user_id"),
+        inverseJoinColumns = @JoinColumn(name = "role_id")
+    )
+    private Set<Role> roles = new HashSet<>();
 
     public User() {}
 
@@ -59,9 +67,7 @@ public class User {
     public String getAddress() { return address; }
     public void setAddress(String address) { this.address = address; }
 
-    public String getCityName() { return cityName; }
-    public void setCityName(String cityName) { this.cityName = cityName; }
-
+    
     public String getAccountStatus() { return accountStatus; }
     public void setAccountStatus(String accountStatus) { this.accountStatus = accountStatus; }
 
@@ -73,4 +79,7 @@ public class User {
 
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+
+    public Set<Role> getRoles() { return roles; }
+    public void setRoles(Set<Role> roles) { this.roles = roles; }
 }

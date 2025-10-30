@@ -12,6 +12,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+
 import java.net.URI;
 import java.util.Optional;
 
@@ -58,7 +59,6 @@ public class AuthController {
         u.setPhone(req.getPhone());
         u.setPassword(req.getPassword()); // đảm bảo UserService.register sẽ hash password
         u.setAddress(req.getAddress());
-        u.setCityName(req.getCityName());
         u.setAccountStatus("active");
 
         User saved = userService.register(u);
