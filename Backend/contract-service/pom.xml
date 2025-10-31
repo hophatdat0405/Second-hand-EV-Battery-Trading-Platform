@@ -20,11 +20,12 @@
 
     <properties>
         <java.version>21</java.version>
+        <spring-cloud.version>2024.0.0</spring-cloud.version> <!-- ✅ Dùng version mới nhất -->
     </properties>
 
     <dependencies>
 
-        <!-- ============ SPRING SECURITY (để cấu hình CORS và bảo mật API) ============ -->
+        <!-- ============ SPRING SECURITY ============ -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
@@ -67,12 +68,6 @@
             <optional>true</optional>
         </dependency>
 
-        <!-- ============ WEBCLIENT (gọi sang transaction-service) ============ -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-webflux</artifactId>
-        </dependency>
-
         <!-- ============ DEVTOOLS (Hot reload) ============ -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -81,13 +76,40 @@
             <optional>true</optional>
         </dependency>
 
+        <!-- ✅ SPRING CLOUD OPENFEIGN (Gọi sang transaction-service) -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-openfeign</artifactId>
+        </dependency>
+
         <!-- ============ TEST ============ -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <dependency>
+            <groupId>com.itextpdf</groupId>
+            <artifactId>itextpdf</artifactId>
+            <version>5.5.13.3</version>
+        </dependency>
+
+
     </dependencies>
+
+    <!-- ✅ Thêm BOM của Spring Cloud để Maven biết version của openfeign -->
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-dependencies</artifactId>
+                <version>${spring-cloud.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <build>
         <plugins>
