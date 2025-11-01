@@ -30,10 +30,15 @@ public class ContractServiceImpl implements ContractService {
     @Value("${transaction.service.url:http://localhost:8083}")
     private String transactionServiceBaseUrl;
 
+    // ============================================================
+    // 1️⃣ Dùng cho MQ (tự động tạo hợp đồng khi order.paid)
+    // ============================================================
     @Override
-    public ContractResponse signContract(ContractRequest request) {
+    public ContractResponse createContract(ContractRequest request) {
         try {
-            // 🧾 1️⃣ Gọi API transaction-service để lấy thông tin thanh toán
+            log.info("📩 [ContractService] Nhận yêu cầu tạo hợp đồng tự động cho transactionId={}", request.getTransactionId());
+
+            // Lấy thông tin giao dịch từ transaction-service
             String apiUrl = transactionServiceBaseUrl + "/api/payments/info/" + request.getTransactionId();
             log.info("🔗 [ContractService] Gọi API transaction-service: {}", apiUrl);
 
@@ -56,7 +61,66 @@ public class ContractServiceImpl implements ContractService {
                         response.statusCode() + ")");
             }
 
-            // 🧩 2️⃣ Parse JSON -> ContractRequest
+            JSONObject json = new JSONObject(response.body());
+
+            // Tạo entity contract
+            Contract ct = new Contract();
+            ct.setTransactionId(json.optString("transactionId"));
+            ct.setCustomerName(json.optString("fullName"));
+            ct.setCustomerPhone(json.optString("phone"));
+            ct.setCustomerEmail(json.optString("email"));
+            ct.setCustomerAddress(json.optString("address"));
+            ct.setPaymentMethod(request.getMethod());
+            ct.setPdfUrl("https://example.com/contracts/" + UUID.randomUUID() + ".pdf");
+
+            contractRepo.save(ct);
+            log.info("✅ [ContractService] Đã tạo hợp đồng tự động cho transactionId={}", request.getTransactionId());
+
+            String now = java.time.LocalDateTime.now()
+                    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+
+            return ContractResponse.builder()
+                    .message("✅ Hợp đồng tự động tạo thành công (MQ event).")
+                    .transactionId(request.getTransactionId())
+                    .pdfUrl(ct.getPdfUrl())
+                    .signedAt(now)
+                    .build();
+
+        } catch (Exception e) {
+            log.error("❌ [ContractService] Lỗi khi tạo hợp đồng tự động: {}", e.getMessage(), e);
+            throw new RuntimeException("Lỗi khi tạo hợp đồng tự động: " + e.getMessage(), e);
+        }
+    }
+
+    // ============================================================
+    // 2️⃣ Dùng cho người dùng ký hợp đồng thủ công
+    // ============================================================
+    @Override
+    public ContractResponse signContract(ContractRequest request) {
+        try {
+            // 🧾 Gọi API transaction-service để lấy thông tin thanh toán
+            String apiUrl = transactionServiceBaseUrl + "/api/payments/info/" + request.getTransactionId();
+            log.info("🔗 [ContractService] Gọi API transaction-service: {}", apiUrl);
+
+            HttpClient client = HttpClient.newBuilder()
+                    .connectTimeout(Duration.ofSeconds(5))
+                    .build();
+
+            HttpRequest httpRequest = HttpRequest.newBuilder()
+                    .uri(URI.create(apiUrl))
+                    .timeout(Duration.ofSeconds(10))
+                    .header("Accept", "application/json")
+                    .GET()
+                    .build();
+
+            HttpResponse<String> response = client.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+            log.info("📥 Phản hồi từ transaction-service [{}]: {}", response.statusCode(), response.body());
+
+            if (response.statusCode() != 200) {
+                throw new RuntimeException("Không thể lấy thông tin thanh toán từ transaction-service (" +
+                        response.statusCode() + ")");
+            }
+
             JSONObject json = new JSONObject(response.body());
             ContractRequest info = new ContractRequest();
             info.setTransactionId(json.optString("transactionId"));
@@ -66,9 +130,8 @@ public class ContractServiceImpl implements ContractService {
             info.setPhone(json.optString("phone"));
             info.setEmail(json.optString("email"));
             info.setAddress(json.optString("address"));
-            info.setSignature(request.getSignature()); // lấy từ người dùng ký
+            info.setSignature(request.getSignature());
 
-            // 🧾 3️⃣ Kiểm tra trạng thái thanh toán
             if (!"SUCCESS".equalsIgnoreCase(info.getStatus())) {
                 log.warn("⚠️ Giao dịch {} chưa hoàn tất — trạng thái: {}", info.getTransactionId(), info.getStatus());
                 return ContractResponse.builder()
@@ -79,7 +142,6 @@ public class ContractServiceImpl implements ContractService {
                         .build();
             }
 
-            // ✍️ 4️⃣ Tạo bản ghi hợp đồng
             Contract ct = new Contract();
             ct.setTransactionId(info.getTransactionId());
             ct.setSignature(info.getSignature());
@@ -93,7 +155,6 @@ public class ContractServiceImpl implements ContractService {
             contractRepo.save(ct);
             log.info("✅ Hợp đồng đã được lưu thành công cho khách hàng: {}", info.getFullName());
 
-            // 🕒 5️⃣ Tạo phản hồi ContractResponse
             String now = java.time.LocalDateTime.now()
                     .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 
