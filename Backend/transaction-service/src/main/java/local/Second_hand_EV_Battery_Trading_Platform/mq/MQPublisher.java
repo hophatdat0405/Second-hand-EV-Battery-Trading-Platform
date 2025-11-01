@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -17,23 +19,26 @@ import lombok.extern.slf4j.Slf4j;
 public class MQPublisher {
 
     private final RabbitTemplate rabbitTemplate;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Value("${mq.exchange:ev.exchange}")
     private String exchange;
 
-    // ✅ (Tùy chọn) Tự động tạo exchange nếu chưa tồn tại
     @Bean
     public DirectExchange evExchange() {
         return new DirectExchange(exchange, true, false);
     }
 
-    // ✅ Gửi message có kiểm soát lỗi
     public void publish(String routingKey, Map<String, Object> payload) {
         try {
-            rabbitTemplate.convertAndSend(exchange, routingKey, payload);
-            log.info("📤 [MQPublisher] Sent event: {} | Payload: {}", routingKey, payload);
+            ObjectMapper mapper = new ObjectMapper();
+            String json = mapper.writeValueAsString(payload);
+            rabbitTemplate.convertAndSend(exchange, routingKey, json);
+            log.info("📤 [MQPublisher] Sent JSON event: {} | {}", routingKey, json);
         } catch (Exception e) {
-            log.error("❌ [MQPublisher] Lỗi khi gửi message tới MQ: {}", e.getMessage());
+            log.error("❌ [MQPublisher] Lỗi gửi MQ: {}", e.getMessage());
         }
     }
+
 }
+
