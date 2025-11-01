@@ -8,12 +8,12 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ContractRequest {
-    private String transactionId;
-    private String status;
-    private String method;
-    private String fullName;
-    private String phone;
-    private String email;
-    private String address;
-    private String signature; // chữ ký người dùng khi ký hợp đồng
+    private String transactionId; // Mã giao dịch từ transaction-service
+    private String status;        // Trạng thái hợp đồng (PENDING, SIGNED, FAILED)
+    private String method;        // Phương thức thanh toán (MOMO, VNPAY, ...)
+    private String fullName;      // Tên khách hàng
+    private String phone;         // SĐT khách hàng
+    private String email;         // Email khách hàng
+    private String address;       // Địa chỉ khách hàng
+    private String signature;     // Chữ ký điện tử (khi ký hợp đồng)
 }
