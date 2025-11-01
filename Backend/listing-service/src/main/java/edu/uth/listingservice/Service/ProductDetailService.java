@@ -1,9 +1,14 @@
 package edu.uth.listingservice.Service;
 
 import java.util.List;
+import java.util.Collections;
+import java.util.Set; // <-- ✅ THÊM IMPORT NÀY
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClient; 
+import reactor.core.publisher.Mono; 
 
 import edu.uth.listingservice.DTO.ProductDetailDTO;
 import edu.uth.listingservice.DTO.UserDTO;
@@ -23,7 +28,12 @@ public class ProductDetailService {
     @Autowired private ProductImageRepository imageRepository;
     @Autowired private ProductSpecificationRepository specificationRepository;
     @Autowired private ProductListingRepository listingRepository;
-    //  Không cần conditionRepository nữa
+
+    @Autowired
+    private WebClient.Builder webClientBuilder; 
+
+    @Value("${user.service.baseurl}") 
+    private String userServiceBaseUrl;
 
     public ProductDetailDTO getProductDetail(Long productId) {
 
@@ -34,18 +44,46 @@ public class ProductDetailService {
         ProductSpecification spec = specificationRepository.findByProduct_ProductId(productId);
         ProductListing listing = listingRepository.findByProduct_ProductId(productId);
 
-        //  Không cần lấy ProductCondition riêng nữa vì nó đã có trong 'spec'
-
-        //  Tạm tạo UserDTO để trả ra, sau này kết nối User Service thật
+        
         UserDTO seller = null;
         if (listing != null && listing.getUserId() != null) {
-            seller = new UserDTO();
-            seller.setId(listing.getUserId());
-            seller.setName("Seller Name"); // Tạm thời, sau này sẽ lấy từ User Service
-            seller.setEmail("seller@example.com"); // Tạm thời
+         
+            String url = userServiceBaseUrl + "/api/user/" + listing.getUserId(); 
+            
+            try {
+                seller = webClientBuilder.build() 
+                    .get() 
+                    .uri(url) 
+                    .retrieve() 
+                    .bodyToMono(UserDTO.class) // Bây giờ DTO đã khớp
+                    .onErrorResume(e -> { 
+                        System.err.println("Error fetching user " + listing.getUserId() + ": " + e.getMessage());
+                        // Lỗi deserialization sẽ xảy ra ở đây nếu DTO không khớp
+                        return Mono.just(createFallbackUser(listing.getUserId())); 
+                    })
+                    .block(); 
+                    
+            } catch (Exception e) {
+                System.err.println("Critical error fetching user " + listing.getUserId() + ": " + e.getMessage());
+                seller = createFallbackUser(listing.getUserId());
+            }
         }
 
-        //  Dùng constructor của DTO mới để tạo đối tượng trả về một cách gọn gàng
         return new ProductDetailDTO(product, images, spec, listing, seller);
+    }
+
+    /**
+     * Helper: Tạo một UserDTO mặc định khi không gọi được User Service
+     */
+    // SỬA TỪ Long thành Integer
+    private UserDTO createFallbackUser(Long userId) { 
+        UserDTO fallback = new UserDTO();
+        fallback.setId(userId.intValue()); // <-- ✅ SỬA: .intValue()
+        fallback.setName("Unknown Seller");
+        fallback.setEmail("N/A");
+        fallback.setPhone("N/A");
+        fallback.setAddress("N/A");
+        fallback.setRoles(Collections.emptySet()); // <-- ✅ SỬA: emptySet()
+        return fallback;
     }
 }

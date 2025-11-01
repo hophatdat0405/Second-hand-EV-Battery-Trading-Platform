@@ -1,176 +1,133 @@
-from flask import Flask, request, jsonify
+# File: mq_consumer.py
+# (File này sẽ thay thế app.py)
+
+import pika
+import json
 import joblib
 import pandas as pd
-import re
 import numpy as np
-from datetime import datetime
+import sys
 
-app = Flask(__name__)
-CURRENT_YEAR = datetime.now().year
+# --- TẢI MODEL (Giống hệt app.py) ---
+print("Loading pricing models...")
+try:
+    models = {
+        "car_low": joblib.load('pricing_model_car_low.pkl'),
+        "car_high": joblib.load('pricing_model_car_high.pkl'),
+        "motorbike": joblib.load('pricing_model_motorbike.pkl'),
+        "bike": joblib.load('pricing_model_bike.pkl'),
+        "battery": joblib.load('pricing_model_battery.pkl')
+    }
+    print("Models loaded successfully.")
+except Exception as e:
+    print(f"Error loading models: {e}")
+    sys.exit(1) # Dừng nếu không tải được model
 
-# ⭐ ĐÃ SỬA: Ánh xạ 2 mô hình CAR mới
+# Định nghĩa tên Queue (phải khớp với Java)
+AI_REQUEST_QUEUE = 'ai.price.request.queue'
 
-MODEL_MAP = {
-    'bike': 'pricing_model_bike.pkl',
-    'motorbike': 'pricing_model_motorbike.pkl',
-    # ⭐ ĐÃ GỘP: 2 sub-segments cho CAR
-    'car_low': 'pricing_model_car_low.pkl',
-    'car_high': 'pricing_model_car_high.pkl', 
+# --- HÀM DỰ ĐOÁN (Giống hệt app.py) ---
+def predict_price(data):
+    product_type = data.get('productType')
     
-    'battery': 'pricing_model_battery.pkl', 
-    'other': 'pricing_model_other.pkl',
-    'missing': 'pricing_model_other.pkl',
-}
-
-LOADED_MODELS = {}
-
-# --- Dữ liệu Mean Encoding (Giữ nguyên, cần cập nhật lại sau khi train) ---
-GLOBAL_BRAND_MEAN_LOG_PRICE = 18.10701871833586 
-BRAND_MEAN_LOG_PRICES = {
-    'Ado': 15.693924155104074, 'Asama': 15.566611387648745, 'Audi': 20.36949746138378, 'BMW': 20.96284874570941, 'BYD': 18.885734945275573, 'CALB': 17.20514810640709, 'CATL': 17.258820534464625, 'DKBike': 17.142810444704818, 'Dat Bike': 17.382610550097446, 'Dibao': 16.801406339263472, 'Engwe': 16.03644994630763, 'Eve Energy': 17.22861938142199, 'Giant': 16.01571338996727, 'Gogoro': 16.784698143033715, 'Gotion': 17.219541647258488, 'Gotion High-Tech': 18.028128926938688, 'Himo': 16.113998553160574, 'Honda': 19.810690081345292, 'Hyundai': 20.248506822512162, 'Kia': 20.072135262785356, 'LG Chem': 17.22153903877945, 'Lishen': 16.700635642284034, 'MG': 19.3265542397311, 'Mercedes': 21.06058025428384, 'Nissan': 19.46970095665683, 'Niu': 16.915823100200424, 'Panasonic': 17.21659759606634, 'Pega': 17.10159037922259, 'Phylion': 16.44264006813076, 'Porsche': 20.302818125880172, 'SK On': 17.596106949573056, 'Samsung': 17.49560067924235, 'Samsung SDI': 17.674055228765738, 'Specialized': 16.609769705896483, 'Tesla': 20.352466279153568, 'Trek': 16.577936508904923, 'Vinfast': 19.139803009744618, 'Vinfast Klara': 17.07699451311597, 'Wuling': 19.894476872100956, 'Xiaomi': 16.2161119184011, 'Yadea': 17.18303850026512, 'Zero': 17.486405551979658, 'missing': 18.028128926938688
-}
-
-# Ngưỡng Giá Logarithmic Dựa trên Brand Value Score
-CAR_LOG_THRESHOLD_LOW = 20.21 # Tương đương 600M
-
-# --- Hàm xử lý dữ liệu (Đồng bộ với train_model.py) ---
-def extract_capacity_value(capacity_str):
-    if pd.isna(capacity_str): return 0
-    capacity_str = str(capacity_str).lower().replace(" ", "")
-    match = re.search(r'(\d+(\.\d+)?)', capacity_str)
-    if not match: return 0
-    value = float(match.group(1))
-    if 'kwh' in capacity_str: return value
-    if 'ah' in capacity_str:
-        return (value * 48) / 1000 if value > 100 else (value * 72) / 1000
-    return value
-
-def extract_lifespan_months(lifespan_str):
-    if pd.isna(lifespan_str): return 0
-    match = re.search(r'(\d+)', str(lifespan_str))
-    return int(match.group(1)) if match else 0
-
-def extract_charge_time(time_str):
-    if pd.isna(time_str): return 0
-    numbers = re.findall(r'\d+(?:\.\d+)?', str(time_str))
-    valid_numbers = [float(n) for n in numbers if n.strip()]
-    return max(valid_numbers) if valid_numbers else 0 
-
-def calculate_wear_score(row):
-    if row.get("productType") in ["bike", "motorbike"]:
-        mileage = max(row.get('mileage', 0), 0)
-        cycles = max(row.get('chargeCycles', 0), 0)
-        mileage_factor = 1 / np.log1p(mileage) if mileage > 0 else 1
-        cycles_factor = 1 / np.log1p(cycles) if cycles > 0 else 1
-        return (mileage_factor * 0.6 + cycles_factor * 0.4)
-    return 1.0 
-
-
-# --- Khởi tạo & Tải các mô hình ---
-def load_models():
-    print("Đang tải các mô hình chuyên biệt...")
-    success = True
-    for filename in set(MODEL_MAP.values()):
-        if filename not in LOADED_MODELS:
-            try:
-                LOADED_MODELS[filename] = joblib.load(filename)
-                print(f"✅ Tải mô hình {filename} thành công.")
-            except FileNotFoundError:
-                print(f"❌ Không tìm thấy {filename}. Hãy chạy train_model.py trước.")
-                success = False
-    return success
-
-if not load_models():
-    print("Cần có các file mô hình để chạy API.")
-    
-# --- API chính ---
-@app.route('/predict', methods=['POST'])
-def predict_price():
-    data = request.get_json()
-    if not data:
-        return jsonify({'error': 'Không nhận được dữ liệu JSON.'}), 400
-        
-    product_type = str(data.get('productType', 'missing')).lower()
-    
-    # 1. Logic chọn mô hình dựa trên productType
     if product_type == 'car':
-        brand = str(data.get('brand', 'missing'))
-        brand_score = BRAND_MEAN_LOG_PRICES.get(brand, GLOBAL_BRAND_MEAN_LOG_PRICE)
+        model_low = models['car_low']
+        model_high = models['car_high']
         
-        if brand_score <= CAR_LOG_THRESHOLD_LOW: 
-            model_filename = MODEL_MAP['car_low']
-        else:
-            model_filename = MODEL_MAP['car_high']
+        features_low = pd.DataFrame([{
+            'Year': data.get('yearOfManufacture', 2020),
+            'Mileage': data.get('mileage', 0),
+            'ConditionID': data.get('conditionId', 3)
+        }])
+        
+        features_high = pd.DataFrame([{
+            'Brand': data.get('brand', 'Other'),
+            'MaxSpeed': data.get('maxSpeed', 0),
+            'Range': data.get('rangePerCharge', 0),
+            'Warranty': data.get('warrantyPolicy', 'None')
+        }])
+        
+        price_low = model_low.predict(features_low)[0]
+        price_high = model_high.predict(features_high)[0]
+        predicted_price = (price_low + price_high) / 2
+        
+    elif product_type in ['motorbike', 'bike', 'battery']:
+        model = models[product_type]
+        
+        features_dict = {
+            'Year': data.get('yearOfManufacture', 2020),
+            'ConditionID': data.get('conditionId', 3),
+            'Warranty': data.get('warrantyPolicy', 'None')
+        }
+        
+        if product_type == 'motorbike':
+            features_dict['Range'] = data.get('rangePerCharge', 0)
+            features_dict['MaxSpeed'] = data.get('maxSpeed', 0)
+        elif product_type == 'battery':
+            features_dict['Capacity'] = data.get('batteryCapacity', '0kWh')
+            features_dict['Type'] = data.get('batteryType', 'Other')
+            features_dict['Cycles'] = data.get('chargeCycles', 0)
+
+        features = pd.DataFrame([features_dict])
+        predicted_price = model.predict(features)[0]
+        
     else:
-        model_filename = MODEL_MAP.get(product_type, MODEL_MAP['missing'])
-        
-    model = LOADED_MODELS.get(model_filename)
+        return 200000  # Giá mặc định nếu loại không xác định
 
-    if model is None:
-        return jsonify({'error': f'Mô hình {model_filename} chưa được tải.'}), 500
+    # Làm tròn và đảm bảo giá tối thiểu
+    final_price = max(200000, round(predicted_price / 1000) * 1000)
+    return int(final_price)
 
+
+# --- HÀM XỬ LÝ KHI NHẬN TIN NHẮN ---
+def on_request(ch, method, properties, body):
     try:
-        # 2. Trích xuất đặc trưng (Đồng bộ với train_model.py)
-        data['productType'] = product_type
-        data['batteryCapacity_numeric'] = extract_capacity_value(data.get('batteryCapacity'))
-        data['batteryLifespan_months'] = extract_lifespan_months(data.get('batteryLifespan'))
-        data['chargeTime_numeric'] = extract_charge_time(data.get('chargeTime'))
+        # 1. Nhận dữ liệu (dạng JSON string)
+        request_data = json.loads(body.decode('utf-8'))
+        print(f" [.] Received request: {request_data}")
 
-        condition_id = data.get('conditionId')
-        data['condition_score'] = (5 - condition_id) if condition_id in [1, 2, 3, 4] else 0
-
-        year = data.get('yearOfManufacture')
-        data['yearOfManufacture_numeric'] = pd.to_numeric(year, errors="coerce")
-        data['age'] = (CURRENT_YEAR - data['yearOfManufacture_numeric']) if (pd.notna(data['yearOfManufacture_numeric']) and data['yearOfManufacture_numeric'] > 1900) else 0 
-
-        input_df = pd.DataFrame([data])
-        
-        if 'mileage' not in input_df.columns: input_df['mileage'] = 0
-        if 'chargeCycles' not in input_df.columns: input_df['chargeCycles'] = 0
-
-        input_df['wear_score'] = input_df.apply(calculate_wear_score, axis=1)
-
-        DEFAULT_MAX_SPEED = 50 
-        if 'maxSpeed' not in input_df.columns:
-            input_df['maxSpeed'] = DEFAULT_MAX_SPEED
-        else:
-            input_df['maxSpeed'] = pd.to_numeric(input_df['maxSpeed'], errors='coerce').fillna(DEFAULT_MAX_SPEED)
-
-        input_df['maxSpeed_safe'] = input_df['maxSpeed'].replace(0, 1e-6) 
-        input_df["pin_value_per_speed"] = input_df["batteryCapacity_numeric"] / input_df['maxSpeed_safe']
-        
-        if 'brand' not in input_df.columns:
-            input_df['brand'] = 'missing'
-            
-        input_df['brand'] = input_df['brand'].fillna("missing")
-        input_df['brand_value_score'] = input_df['brand'].apply(
-            lambda x: BRAND_MEAN_LOG_PRICES.get(x, GLOBAL_BRAND_MEAN_LOG_PRICE)
-        )
-
-        # 3. Dự đoán
-        prediction = model.predict(input_df)
-        predicted_price = np.expm1(prediction[0]) # Đây là numpy.float32
-
-        # 4. Tránh giá âm (Đã bỏ làm tròn)
-        MINIMUM_PRICE = 200_000
-        final_price = max(MINIMUM_PRICE, predicted_price) # Đây CŨNG là numpy.float32
-
-
-        # ⭐⭐⭐ SỬA LỖI THEO YÊU CẦU: Chuyển suggestedPrice sang int (số nguyên) ⭐⭐⭐
-        return jsonify({
-            'suggestedPrice': int(final_price), # <--- SỬA LỖI TẠI ĐÂY
-            'model_used': model_filename,
-            'model_raw_prediction': float(predicted_price), # Giữ raw prediction là float để debug
-            'model_version': f'XGBoost_Segmented_v7.1_{CURRENT_YEAR}' 
-        })
+        # 2. Gọi hàm dự đoán
+        suggested_price = predict_price(request_data)
+        response_data = {'suggestedPrice': suggested_price}
+        print(f" [.] Predicted price: {suggested_price}")
 
     except Exception as e:
-        print(f"❌ Lỗi xử lý request: {e}")
-        import traceback
-        traceback.print_exc()
-        return jsonify({'error': f'Lỗi server nội bộ: {str(e)}'}), 500
+        print(f" [!] Error processing request: {e}")
+        response_data = {'suggestedPrice': 400000} # Giá mặc định nếu lỗi
 
-# --- Chạy ứng dụng ---
-if __name__ == '__main__':
-    print(f"🚀 API đang chạy tại http://127.0.0.1:5000 (năm {CURRENT_YEAR})")
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    # 3. Gửi Phản hồi (Reply)
+    # Gửi kết quả về 'reply_to' queue
+    # với 'correlation_id' giống hệt tin nhắn gốc
+    ch.basic_publish(
+        exchange='',
+        routing_key=properties.reply_to,
+        properties=pika.BasicProperties(correlation_id=properties.correlation_id),
+        body=json.dumps(response_data)
+    )
+    
+    # 4. Báo cho RabbitMQ biết là đã xử lý xong tin nhắn này
+    ch.basic_ack(delivery_tag=method.delivery_tag)
+
+# --- THIẾT LẬP KẾT NỐI VÀ LẮNG NGHE ---
+try:
+    connection = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
+    channel = connection.channel()
+
+    # Khai báo Queue (nếu chưa có)
+    channel.queue_declare(queue=AI_REQUEST_QUEUE)
+
+    # Đặt service ở chế độ "nhận 1 tin nhắn mỗi lần" để cân bằng tải
+    channel.basic_qos(prefetch_count=1)
+    
+    # Đặt hàm on_request làm callback khi có tin nhắn
+    channel.basic_consume(queue=AI_REQUEST_QUEUE, on_message_callback=on_request)
+
+    print(f" [x] Awaiting RPC requests on '{AI_REQUEST_QUEUE}'")
+    channel.start_consuming()
+
+except pika.exceptions.AMQPConnectionError as e:
+    print(f"Error connecting to RabbitMQ: {e}")
+    print("Please ensure RabbitMQ is running on localhost:5672")
+except KeyboardInterrupt:
+    print('Interrupted')
+    connection.close()

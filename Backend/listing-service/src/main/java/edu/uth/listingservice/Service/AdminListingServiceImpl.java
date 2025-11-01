@@ -2,38 +2,53 @@
 package edu.uth.listingservice.Service;
 
 import edu.uth.listingservice.Model.ListingStatus;
-import edu.uth.listingservice.Model.Notification;
 import edu.uth.listingservice.Model.ProductListing;
 import edu.uth.listingservice.Repository.ProductListingRepository;
-import edu.uth.listingservice.DTO.AdminListingUpdateDTO; // Keep DTO for admin page
+import edu.uth.listingservice.DTO.AdminListingUpdateDTO;
+import edu.uth.listingservice.DTO.ListingEventDTO; // <-- IMPORT MỚI
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value; // <-- IMPORT MỚI
+import org.springframework.amqp.rabbit.core.RabbitTemplate; // <-- IMPORT MỚI
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import edu.uth.listingservice.Service.NotificationService;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import java.util.Date;
-import org.hibernate.Hibernate; // Import Hibernate
+import org.hibernate.Hibernate;
 
 @Service
 public class AdminListingServiceImpl implements AdminListingService {
+    
+    // Giữ lại WS cho Admin UI
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
 
     @Autowired
     private ProductListingRepository listingRepository;
-@Autowired
-    private NotificationService notificationService;
-@Override
+
+    // === BƯỚC 1: XÓA NotificationService, THÊM RabbitTemplate ===
+    // @Autowired
+    // private NotificationService notificationService; // <-- ĐÃ XÓA
+    
+    @Autowired
+    private RabbitTemplate rabbitTemplate; // <-- DỊCH VỤ HỖ TRỢ MQ
+
+    // === BƯỚC 2: LẤY TÊN EXCHANGE/KEY TỪ CONFIG ===
+    @Value("${app.rabbitmq.exchange}")
+    private String listingExchange;
+
+    @Value("${app.rabbitmq.routing-key}")
+    private String notificationRoutingKey;
+
+
+    @Override
     public Page<ProductListing> getListingsByStatus(ListingStatus status, Pageable pageable) {
-      
         return listingRepository.findByListingStatus(status, pageable);
     }
 
- @Override
+    @Override
     @Transactional
     public ProductListing approveListing(Long listingId) {
         ProductListing listing = listingRepository.findById(listingId)
@@ -46,39 +61,29 @@ public class AdminListingServiceImpl implements AdminListingService {
         listing.setListingStatus(ListingStatus.ACTIVE);
         listing.setAdminNotes(null);
         listing.setUpdatedAt(new Date());
-        listing.setListingDate(new Date());
+        listing.setListingDate(new Date()); // Cập nhật ngày duyệt
 
         ProductListing savedListing = listingRepository.save(listing);
 
-        // Force load lazy-loaded product data
         if (savedListing.getProduct() != null) {
             Hibernate.initialize(savedListing.getProduct());
-            // Optionally initialize images if needed later
-            // Hibernate.initialize(savedListing.getProduct().getImages());
         }
 
-        // --- Send 1: Send Notification for the bell (main.js) ---
-        String userMessage = String.format("Tin đăng '%s' của bạn đã được duyệt.", savedListing.getProduct().getProductName());
-        String userLink = String.format("/edit_news.html?listing_id=%d", savedListing.getListingId());
-        Notification userNotification = notificationService.createNotification(savedListing.getUserId(), userMessage, userLink);
+        // === BƯỚC 3: XÓA CODE GỌI NOTIFICATION CŨ ===
+        // (Toàn bộ khối tạo userMessage, userLink, gọi notificationService,
+        // và messagingTemplate.convertAndSendToUser(...) đã bị xóa)
 
-        if (userNotification != null) {
-             messagingTemplate.convertAndSendToUser(
-                String.valueOf(savedListing.getUserId()),
-                "/topic/notifications", // Topic for the bell
-                userNotification
-            );
-        }
-
-        // --- Send 2: Send full ProductListing for the management page (manage-listings.js) ---
-        messagingTemplate.convertAndSendToUser(
-            String.valueOf(savedListing.getUserId()),
-            "/topic/listingUpdates", // NEW TOPIC for management page
-            savedListing // Send the full, initialized object
+        // === BƯỚC 4: GỬI SỰ KIỆN QUA MQ ===
+        ListingEventDTO event = new ListingEventDTO(
+            savedListing.getListingId(),
+            savedListing.getUserId(),
+            savedListing.getProduct().getProductName(),
+            "APPROVED", // Trạng thái sự kiện
+            null // Không có lý do
         );
-        // ---
+        rabbitTemplate.convertAndSend(listingExchange, notificationRoutingKey, event);
 
-        // Send DTO to Admin (remains unchanged)
+        // === BƯỚC 5: GIỮ LẠI WS CHO ADMIN UI ===
         AdminListingUpdateDTO updateDTO = new AdminListingUpdateDTO(savedListing);
         messagingTemplate.convertAndSend("/topic/admin/listingUpdate", updateDTO);
 
@@ -101,47 +106,34 @@ public class AdminListingServiceImpl implements AdminListingService {
         listing.setListingStatus(ListingStatus.REJECTED);
         listing.setAdminNotes(reason);
         listing.setUpdatedAt(new Date());
-        listing.setListingDate(new Date());
 
         ProductListing savedListing = listingRepository.save(listing);
 
-        // Force load lazy-loaded product data
         if (savedListing.getProduct() != null) {
             Hibernate.initialize(savedListing.getProduct());
-            // Optionally initialize images if needed later
-            // Hibernate.initialize(savedListing.getProduct().getImages());
         }
 
-        // --- Send 1: Send Notification for the bell (main.js) ---
-        String userMessage = String.format("Tin đăng '%s' của bạn đã bị từ chối.", savedListing.getProduct().getProductName());
-        String userLink = String.format("/edit_news.html?listing_id=%d", savedListing.getListingId());
-        Notification userNotification = notificationService.createNotification(savedListing.getUserId(), userMessage, userLink);
+        // === BƯỚC 3: XÓA CODE GỌI NOTIFICATION CŨ ===
+        // (Đã xóa...)
 
-         if (userNotification != null) {
-            messagingTemplate.convertAndSendToUser(
-                String.valueOf(savedListing.getUserId()),
-                "/topic/notifications", // Topic for the bell
-                userNotification
-            );
-         }
-        // ---
-
-        // --- Send 2: Send full ProductListing for the management page (manage-listings.js) ---
-        messagingTemplate.convertAndSendToUser(
-            String.valueOf(savedListing.getUserId()),
-            "/topic/listingUpdates", // NEW TOPIC for management page
-            savedListing // Send the full, initialized object
+        // === BƯỚC 4: GỬI SỰ KIỆN QUA MQ ===
+        ListingEventDTO event = new ListingEventDTO(
+            savedListing.getListingId(),
+            savedListing.getUserId(),
+            savedListing.getProduct().getProductName(),
+            "REJECTED", // Trạng thái sự kiện
+            reason // Gửi kèm lý do từ chối
         );
-        // ---
+        rabbitTemplate.convertAndSend(listingExchange, notificationRoutingKey, event);
 
-        // Send DTO to Admin (remains unchanged)
+        // === BƯỚC 5: GIỮ LẠI WS CHO ADMIN UI ===
         AdminListingUpdateDTO updateDTO = new AdminListingUpdateDTO(savedListing);
         messagingTemplate.convertAndSend("/topic/admin/listingUpdate", updateDTO);
 
         return savedListing;
     }
 
-  @Override
+    @Override
     @Transactional
     public ProductListing verifyListing(Long listingId) {
         ProductListing listing = listingRepository.findById(listingId)
@@ -154,45 +146,34 @@ public class AdminListingServiceImpl implements AdminListingService {
         listing.setVerified(true);
         listing.setUpdatedAt(new Date());
         
-        // ✅ THAY ĐỔI: Gửi tin nhắn WS khi "Kiểm Định"
         ProductListing savedListing = listingRepository.save(listing);
 
-        // Force load lazy-loaded product data
         if (savedListing.getProduct() != null) {
             Hibernate.initialize(savedListing.getProduct());
         }
 
-        // --- Send 1: Gửi tin nhắn WS đến trang quản lý của User ---
-        messagingTemplate.convertAndSendToUser(
-            String.valueOf(savedListing.getUserId()),
-            "/topic/listingUpdates", // Gửi đến topic mà manage-listings.js đang nghe
-            savedListing // Gửi toàn bộ object đã được cập nhật
+        // === BƯỚC 3: XÓA CODE GỌI NOTIFICATION CŨ ===
+        // (Xóa 2 khối: 1 cho listingUpdates, 1 cho notifications)
+        
+        // === BƯỚC 4: GỬI SỰ KIỆN QUA MQ ===
+        ListingEventDTO event = new ListingEventDTO(
+            savedListing.getListingId(),
+            savedListing.getUserId(),
+            savedListing.getProduct().getProductName(),
+            "VERIFIED", // Trạng thái sự kiện
+            null
         );
+        rabbitTemplate.convertAndSend(listingExchange, notificationRoutingKey, event);
 
-        // --- Send 2: Gửi tin nhắn cập nhật cho Admin (giữ nguyên) ---
+        // === BƯỚC 5: GIỮ LẠI WS CHO ADMIN UI ===
         AdminListingUpdateDTO updateDTO = new AdminListingUpdateDTO(savedListing);
         messagingTemplate.convertAndSend("/topic/admin/listingUpdate", updateDTO);
 
-
-        String userMessage = String.format("Tin đăng '%s' của bạn vừa được gắn nhãn kiểm định.", savedListing.getProduct().getProductName());
-        String userLink = String.format("/edit_news.html?listing_id=%d", savedListing.getListingId());
-        Notification userNotification = notificationService.createNotification(savedListing.getUserId(), userMessage, userLink);
-
-        if (userNotification != null) {
-             messagingTemplate.convertAndSendToUser(
-                String.valueOf(savedListing.getUserId()),
-                "/topic/notifications", // Topic for the bell
-                userNotification
-            );
-        }
-        // --- Kết thúc Bổ sung ---
         return savedListing;
     }
     
-
     @Override
     public Page<ProductListing> searchListings(String query, Pageable pageable) {
-        // Pageable pageable = PageRequest.of(page, size, Sort.by("listingDate").descending()); // <-- XÓA DÒNG NÀY
         return listingRepository.searchByProductNameOrUserId(query, pageable);
     }
 }

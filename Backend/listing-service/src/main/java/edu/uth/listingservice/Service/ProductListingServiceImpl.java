@@ -1,5 +1,6 @@
 // File: edu/uth/listingservice/Service/ProductListingServiceImpl.java
 package edu.uth.listingservice.Service;
+
 import org.springframework.data.domain.Page;
 import java.util.Date;
 import java.util.List;
@@ -7,6 +8,9 @@ import org.springframework.web.multipart.MultipartFile;
 import edu.uth.listingservice.Model.ProductImage;
 import java.util.ArrayList;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value; // <-- IMPORT MỚI
+import org.springframework.amqp.rabbit.core.RabbitTemplate; // <-- IMPORT MỚI
+import edu.uth.listingservice.DTO.ListingEventDTO; // <-- IMPORT MỚI
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -23,31 +27,77 @@ import edu.uth.listingservice.DTO.UpdateListingDTO;
 import edu.uth.listingservice.DTO.AdminListingUpdateDTO;
 import edu.uth.listingservice.Repository.ProductImageRepository;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.hibernate.Hibernate; // Import Hibernate
+import org.hibernate.Hibernate;
 
 @Service
 public class ProductListingServiceImpl implements ProductListingService {
 
     @Autowired
-    private SimpMessagingTemplate messagingTemplate;
+    private SimpMessagingTemplate messagingTemplate; // Giữ lại cho Admin UI
+    
+    // === THÊM RabbitTemplate và Config ===
+    @Autowired
+    private RabbitTemplate rabbitTemplate;
+
+    @Value("${app.rabbitmq.exchange}")
+    private String listingExchange;
+
+    @Value("${app.rabbitmq.routing-key}")
+    private String notificationRoutingKey;
+    
+    // === Các @Autowired Repository khác ===
     @Autowired
     private ProductListingRepository listingRepository;
-    @Autowired private ProductRepository productRepository;
-    @Autowired private ProductSpecificationRepository specRepository;
+    @Autowired 
+    private ProductRepository productRepository;
+    @Autowired 
+    private ProductSpecificationRepository specRepository;
     @Autowired
     private ProductImageRepository productImageRepository;
+    @Autowired
+    private FileStorageService fileStorageService;
 
-@Autowired
-private FileStorageService fileStorageService;
-
-    // --- Keep these methods unchanged ---
+    // --- Các hàm không đổi ---
     @Override
     public List<ProductListing> getAll() { return listingRepository.findAll(); }
+    
     @Override
     public ProductListing getById(Long id) {
         return listingRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Listing not found with ID: " + id));
     }
+
+    @Override
+    public Page<ProductListing> getActiveListings(String type, String sortBy, int page, int size) {
+        Sort sort = Sort.by(Sort.Direction.DESC, "listingDate");
+        if ("price".equalsIgnoreCase(sortBy)) {
+            sort = Sort.by(Sort.Direction.ASC, "product.price");
+        }
+        Pageable pageable = PageRequest.of(page, size, sort);
+        
+        if (type != null && !type.isEmpty() && !"all".equalsIgnoreCase(type)) {
+            return listingRepository.findByStatusAndProductType(ListingStatus.ACTIVE, type, pageable);
+        }
+        return listingRepository.findByListingStatus(ListingStatus.ACTIVE, pageable);
+    }
+    
+    @Override
+    public List<ProductListing> findRandomRelated(String productType, Long excludeProductId, int limit) {
+        return listingRepository.findRandomRelatedProducts(productType, excludeProductId, limit);
+    }
+    
+    @Override
+    public ProductListing update(Long id, ProductListing updated) { // Hàm này dường như không dùng
+        ProductListing existing = getById(id);
+        existing.setListingStatus(updated.getListingStatus());
+        existing.setProduct(updated.getProduct());
+        existing.setUserId(updated.getUserId());
+        existing.setUpdatedAt(new Date());
+        return listingRepository.save(existing);
+    }
+    // --- Kết thúc các hàm không đổi (hoặc ít thay đổi) ---
+
+
     @Override
     @Transactional
     public ProductListing create(ProductListing listing) {
@@ -57,48 +107,29 @@ private FileStorageService fileStorageService;
             listing.setListingStatus(ListingStatus.PENDING);
         }
         ProductListing savedListing = listingRepository.save(listing);
-        // Force load lazy-loaded data
+        
         if (savedListing.getProduct() != null) {
             Hibernate.initialize(savedListing.getProduct());
         }
-        // Send DTO to Admin
+
+        // === Gửi sự kiện MQ (thay vì gửi WS cho user) ===
+        ListingEventDTO event = new ListingEventDTO(
+            savedListing.getListingId(),
+            savedListing.getUserId(),
+            savedListing.getProduct().getProductName(),
+            "CREATED", // Hoặc "PENDING"
+            null
+        );
+        rabbitTemplate.convertAndSend(listingExchange, notificationRoutingKey, event);
+        
+        // Giữ lại WS cho Admin
         AdminListingUpdateDTO updateDTO = new AdminListingUpdateDTO(savedListing);
         messagingTemplate.convertAndSend("/topic/admin/listingUpdate", updateDTO);
+        
         return savedListing;
     }
-    @Override
-    public ProductListing update(Long id, ProductListing updated) { // This method seems unused? Keep as is for now.
-        ProductListing existing = getById(id);
-        existing.setListingStatus(updated.getListingStatus());
-        existing.setProduct(updated.getProduct());
-        existing.setUserId(updated.getUserId());
-        existing.setUpdatedAt(new Date());
-        return listingRepository.save(existing);
-    }
-   //  THAY ĐỔI HÀM NÀY
-    @Override
-    public Page<ProductListing> getActiveListings(String type, String sortBy, int page, int size) {
-        Sort sort = Sort.by(Sort.Direction.DESC, "listingDate");
-        if ("price".equalsIgnoreCase(sortBy)) {
-            sort = Sort.by(Sort.Direction.ASC, "product.price");
-        }
-        // Sử dụng page và size thay vì "0, limit"
-        Pageable pageable = PageRequest.of(page, size, sort);
-        
-        if (type != null && !type.isEmpty() && !"all".equalsIgnoreCase(type)) {
-            // Trả về đối tượng Page đầy đủ (không .getContent())
-            return listingRepository.findByStatusAndProductType(ListingStatus.ACTIVE, type, pageable);
-        }
-        // Trả về đối tượng Page đầy đủ
-        return listingRepository.findByListingStatus(ListingStatus.ACTIVE, pageable);
-    }
-    @Override
-    public List<ProductListing> findRandomRelated(String productType, Long excludeProductId, int limit) {
-        return listingRepository.findRandomRelatedProducts(productType, excludeProductId, limit);
-    }
-    // --- End of unchanged methods ---
 
-   @Override
+    @Override
     @Transactional
     public ProductListing updateListingDetails(Long listingId, UpdateListingDTO dto) {
         ProductListing listing = getById(listingId);
@@ -109,7 +140,7 @@ private FileStorageService fileStorageService;
             throw new IllegalStateException("Không thể chỉnh sửa tin đã bán.");
         }
 
-        // --- Update logic (remains the same) ---
+        // --- Logic update (Giữ nguyên) ---
          if (listing.getListingStatus() == ListingStatus.ACTIVE || listing.getListingStatus() == ListingStatus.REJECTED) {
              product.setPrice(dto.getPrice());
              product.setDescription(dto.getDescription());
@@ -139,13 +170,11 @@ private FileStorageService fileStorageService;
                 spec.setBatteryCapacity(dto.getBatteryCapacity());
             }
         }
-        // --- End Update logic ---
-
-        // THÊM DÒNG NÀY DƯỚI ĐÂY
-        listing.setUpdatedOnce(true); // Đánh dấu là đã chỉnh sửa 1 lần
+        // --- Kết thúc Logic update ---
         
-        listing.setVerified(false); // Bất kỳ chỉnh sửa nào cũng xóa trạng thái đã kiểm định
-        listing.setListingStatus(ListingStatus.PENDING); // Luôn set về PENDING để duyệt lại
+        listing.setUpdatedOnce(true); 
+        listing.setVerified(false); 
+        listing.setListingStatus(ListingStatus.PENDING); // Luôn set về PENDING
         
         listing.setListingDate(new Date());
         listing.setUpdatedAt(new Date());
@@ -155,24 +184,30 @@ private FileStorageService fileStorageService;
         specRepository.save(spec);
         ProductListing savedListing = listingRepository.save(listing);
 
-        // Force load lazy-loaded data
         if (savedListing.getProduct() != null) {
             Hibernate.initialize(savedListing.getProduct());
         }
 
-        // Send DTO to Admin
+        // === XÓA WS GỬI CHO USER ===
+        // messagingTemplate.convertAndSendToUser(..., "/topic/listingUpdates", ...); // <-- ĐÃ XÓA
+
+        // === THAY BẰNG GỬI MQ ===
+        ListingEventDTO event = new ListingEventDTO(
+            savedListing.getListingId(),
+            savedListing.getUserId(),
+            savedListing.getProduct().getProductName(),
+            "UPDATED", // Gửi sự kiện "Đã cập nhật"
+            null
+        );
+        rabbitTemplate.convertAndSend(listingExchange, notificationRoutingKey, event);
+
+        // Giữ lại WS cho Admin
         AdminListingUpdateDTO updateDTO = new AdminListingUpdateDTO(savedListing);
         messagingTemplate.convertAndSend("/topic/admin/listingUpdate", updateDTO);
 
-        // Send full object to the user for instant update on their management page
-        messagingTemplate.convertAndSendToUser(
-            String.valueOf(savedListing.getUserId()),
-            "/topic/listingUpdates", // NEW TOPIC
-            savedListing
-        );
-
         return savedListing;
     }
+
     @Override
     @Transactional
     public ProductListing markAsSold(Long listingId) {
@@ -184,22 +219,26 @@ private FileStorageService fileStorageService;
         listing.setUpdatedAt(new Date());
         ProductListing savedListing = listingRepository.save(listing);
 
-        // Force load lazy-loaded data
         if (savedListing.getProduct() != null) {
             Hibernate.initialize(savedListing.getProduct());
         }
 
-        // Send full object to the user for instant update on their management page
-        messagingTemplate.convertAndSendToUser(
-            String.valueOf(savedListing.getUserId()),
-            "/topic/listingUpdates", // NEW TOPIC
-            savedListing
+        // === XÓA WS GỬI CHO USER ===
+        // messagingTemplate.convertAndSendToUser(..., "/topic/listingUpdates", ...); // <-- ĐÃ XÓA
+
+        // === THAY BẰNG GỬI MQ ===
+        ListingEventDTO event = new ListingEventDTO(
+            savedListing.getListingId(),
+            savedListing.getUserId(),
+            savedListing.getProduct().getProductName(),
+            "SOLD", // Gửi sự kiện "Đã bán"
+            null
         );
+        rabbitTemplate.convertAndSend(listingExchange, notificationRoutingKey, event);
 
         return savedListing;
     }
 
-    // --- Keep these methods unchanged ---
     @Override
     @Transactional
     public ProductListing addImagesToListing(Long listingId, List<MultipartFile> files) {
@@ -217,8 +256,9 @@ private FileStorageService fileStorageService;
             productImageRepository.saveAll(newImages);
         }
         listing.setUpdatedAt(new Date());
-        return listingRepository.save(listing); // No WS needed here as UI updates via form submit
+        return listingRepository.save(listing); 
     }
+    
     @Override
     @Transactional
     public void deleteImageFromListing(Long listingId, Long imageId) {
@@ -233,13 +273,15 @@ private FileStorageService fileStorageService;
         product.getImages().remove(imageToRemove);
         productRepository.save(product);
         listing.setUpdatedAt(new Date());
-        listingRepository.save(listing); // No WS needed here as UI updates via form submit
+        listingRepository.save(listing);
     }
+    
     @Override
     public Page<ProductListing> getByUserId(Long userId, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("updatedAt").descending());
         return listingRepository.findByUserId(userId, pageable);
     }
+    
     @Override
     @Transactional
     public void delete(Long id) {
@@ -247,18 +289,31 @@ private FileStorageService fileStorageService;
         Product product = listing.getProduct();
         Long listingId = listing.getListingId();
         List<ProductImage> images = productImageRepository.findByProduct_ProductId(product.getProductId());
+        
         for (ProductImage image : images) {
             fileStorageService.delete(image.getImageUrl());
         }
+        
         listingRepository.delete(listing);
-        productRepository.delete(product); // Assuming Cascade is set correctly or handled here
-        // Send delete notification to Admin
+        productRepository.delete(product); 
+
+        // === GỬI SỰ KIỆN MQ ===
+        ListingEventDTO event = new ListingEventDTO(
+            listingId,
+            listing.getUserId(),
+            product.getProductName(),
+            "DELETED",
+            null
+        );
+        rabbitTemplate.convertAndSend(listingExchange, notificationRoutingKey, event);
+
+        // Giữ lại WS cho Admin
         java.util.Map<String, Object> deleteMessage = new java.util.HashMap<>();
         deleteMessage.put("action", "delete");
         deleteMessage.put("listingId", listingId);
         messagingTemplate.convertAndSend("/topic/admin/listingUpdate", deleteMessage);
-        // Maybe send a delete message to the user's listingUpdates topic too? Optional.
     }
+    
     @Override
     public int findPageForListing(Long userId, Long listingId, int pageSize) {
         List<ProductListing> allListings = listingRepository.findByUserIdOrderByUpdatedAtDesc(userId);
@@ -274,5 +329,4 @@ private FileStorageService fileStorageService;
         }
         return 0;
     }
-    // --- End of unchanged methods ---
 }

@@ -19,7 +19,7 @@ public class ProductDetailController {
     @Autowired
     private ProductDetailService productDetailService;
 
-    // API: http://localhost:8080/api/product-details/1
+
     @GetMapping("/{productId}")
     public ResponseEntity<ProductDetailDTO> getProductDetail(@PathVariable Long productId) {
         ProductDetailDTO productDetail = productDetailService.getProductDetail(productId);
