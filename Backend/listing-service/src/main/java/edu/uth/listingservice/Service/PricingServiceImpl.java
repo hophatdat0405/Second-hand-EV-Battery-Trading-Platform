@@ -1,5 +1,6 @@
 // File: edu/uth/listingservice/Service/PricingServiceImpl.java
-package edu.uth.listingservice.Service; 
+package edu.uth.listingservice.Service;
+import org.springframework.cache.annotation.Cacheable; 
 
 import edu.uth.listingservice.DTO.PricingRequestDTO;
 import edu.uth.listingservice.DTO.PricingResponseDTO;
@@ -7,22 +8,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.amqp.rabbit.core.RabbitTemplate; // <-- IMPORT MỚI
+import org.springframework.amqp.rabbit.core.RabbitTemplate; 
 import org.springframework.stereotype.Service;
-// import org.springframework.web.reactive.function.client.WebClient; // <-- XÓA
+import org.springframework.core.ParameterizedTypeReference; 
 
 @Service
 public class PricingServiceImpl implements PricingService {
     private final Logger logger = LoggerFactory.getLogger(PricingServiceImpl.class);
     
-    // === XÓA WEBCLIENT ===
-    // private final WebClient webClient; 
-
-    // === THÊM RABBITTEMPLATE ===
     @Autowired
     private RabbitTemplate rabbitTemplate;
 
-    // Lấy tên Exchange và Routing Key từ config
     @Value("${app.rabbitmq.ai.exchange}")
     private String aiExchange;
 
@@ -33,27 +29,28 @@ public class PricingServiceImpl implements PricingService {
     private static final long FALLBACK_PRICE = 400_000L;
 
     /**
-     * Xóa constructor cũ dùng WebClient.Builder
+     * (Xóa constructor cũ dùng WebClient.Builder)
      */
-    // @Autowired
-    // public PricingServiceImpl(WebClient.Builder webClientBuilder) {
-    //     this.webClient = webClientBuilder.build();
-    // }
-
+    
     @Override
+   @Cacheable(value = "aiSuggestions", 
+           key = "#dto.productType + '-' + #dto.brand + '-' + #dto.conditionId + '-' + #dto.yearOfManufacture + '-' + " +
+                 "#dto.mileage + '-' + #dto.batteryCapacity + '-' + #dto.batteryType + '-' + #dto.batteryLifespan + '-' + " +
+                 "#dto.compatibleVehicle + '-' + #dto.warrantyPolicy + '-' + #dto.maxSpeed + '-' + #dto.rangePerCharge + '-' + " +
+                 "#dto.color + '-' + #dto.chargeTime + '-' + #dto.chargeCycles")
     public PricingResponseDTO getSuggestedPrice(PricingRequestDTO dto) {
         try {
             logger.info("Sending price request to MQ: {}", dto);
 
-            // === SỬ DỤNG MQ REQUEST/REPLY ===
-            // Gửi DTO (Java) đến Exchange, Spring tự động chuyển thành JSON
-            // Nó sẽ chờ (block) cho đến khi nhận được phản hồi
-            PricingResponseDTO response = (PricingResponseDTO) rabbitTemplate.convertSendAndReceive(
-                aiExchange, 
-                aiRoutingKey, 
-                dto
+            // === SỬA LỖI: Dùng 'convertSendAndReceiveAsType' ===
+            // Gửi DTO và báo cho Spring biết kiểu dữ liệu JSON trả về
+            PricingResponseDTO response = rabbitTemplate.convertSendAndReceiveAsType(
+                aiExchange,
+                aiRoutingKey,
+                dto,
+                new ParameterizedTypeReference<PricingResponseDTO>() {} // <-- Báo kiểu trả về
             );
-            // === KẾT THÚC THAY ĐỔI ===
+            
 
             if (response != null && response.getSuggestedPrice() != null) {
                 if (response.getSuggestedPrice() < MINIMUM_PRICE) {
@@ -69,6 +66,7 @@ public class PricingServiceImpl implements PricingService {
 
         } catch (Exception e) {
             // Nếu service Python không chạy, nó sẽ báo lỗi (thường là timeout)
+            // Lỗi ClassCastException (LinkedHashMap) cũng sẽ bị bắt ở đây
             logger.error("LỖI khi gọi AI service (MQ): {}", e.getMessage());
             return new PricingResponseDTO(FALLBACK_PRICE); 
         }

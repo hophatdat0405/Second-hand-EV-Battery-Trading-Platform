@@ -1,6 +1,8 @@
 package edu.uth.listingservice.Repository;
 
 import java.util.List;
+import java.util.Optional;
+
 import org.springframework.data.domain.Page; // Thêm import này
 
 import org.springframework.data.domain.Pageable;
@@ -8,6 +10,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import org.springframework.data.repository.query.Param;
+
 import edu.uth.listingservice.Model.ListingStatus;
 import edu.uth.listingservice.Model.ProductListing;
 
@@ -28,8 +31,7 @@ public interface ProductListingRepository extends JpaRepository<ProductListing, 
  
      ProductListing findByProduct_ProductId(Long productId);
 
-  //  HÀM MỚI: Lấy tất cả tin đăng của user, sắp xếp theo updatedAt
-    List<ProductListing> findByUserIdOrderByUpdatedAtDesc(Long userId);
+ 
 
     @Query(value = "SELECT pl.* FROM product_listings pl JOIN products p ON pl.product_id = p.product_id " +
                    "WHERE pl.listing_status = 'ACTIVE' " +
@@ -44,4 +46,26 @@ public interface ProductListingRepository extends JpaRepository<ProductListing, 
            "LOWER(pl.product.productName) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
            "CAST(pl.userId AS string) LIKE CONCAT('%', :query, '%')")
     Page<ProductListing> searchByProductNameOrUserId(@Param("query") String query, Pageable pageable);
+
+    @Query(value = """
+        WITH RankedListings AS (
+            SELECT
+                listing_id,
+                (ROW_NUMBER() OVER(ORDER BY updated_at DESC)) - 1 AS zero_based_index
+            FROM
+                product_listings 
+            WHERE
+                user_id = :userId
+        )
+        SELECT
+            rl.zero_based_index
+        FROM
+            RankedListings rl
+        WHERE
+            rl.listing_id = :listingId
+        """, nativeQuery = true)
+    Optional<Integer> findZeroBasedIndexByUserIdAndListingId(
+            @Param("userId") Long userId, 
+            @Param("listingId") Long listingId
+    );
 }

@@ -21,7 +21,4 @@ public class ListingEventDTO {
 
     // Loại sự kiện để Notification Service biết cần làm gì
     private String eventType; // Ví dụ: "APPROVED", "REJECTED", "UPDATED", "SOLD", "CREATED"
-
-    // (Tùy chọn) Gửi kèm lý do
-    private String reason; 
 }
