@@ -28,10 +28,7 @@ public class PricingServiceImpl implements PricingService {
     private static final long MINIMUM_PRICE = 200_000L;
     private static final long FALLBACK_PRICE = 400_000L;
 
-    /**
-     * (Xóa constructor cũ dùng WebClient.Builder)
-     */
-    
+
     @Override
    @Cacheable(value = "aiSuggestions", 
            key = "#dto.productType + '-' + #dto.brand + '-' + #dto.conditionId + '-' + #dto.yearOfManufacture + '-' + " +
@@ -42,13 +39,13 @@ public class PricingServiceImpl implements PricingService {
         try {
             logger.info("Sending price request to MQ: {}", dto);
 
-            // === SỬA LỖI: Dùng 'convertSendAndReceiveAsType' ===
+            // === Dùng 'convertSendAndReceiveAsType' ===
             // Gửi DTO và báo cho Spring biết kiểu dữ liệu JSON trả về
             PricingResponseDTO response = rabbitTemplate.convertSendAndReceiveAsType(
                 aiExchange,
                 aiRoutingKey,
                 dto,
-                new ParameterizedTypeReference<PricingResponseDTO>() {} // <-- Báo kiểu trả về
+                new ParameterizedTypeReference<PricingResponseDTO>() {} 
             );
             
 

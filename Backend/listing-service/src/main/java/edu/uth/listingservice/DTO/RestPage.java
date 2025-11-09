@@ -1,4 +1,4 @@
-package edu.uth.listingservice.DTO; // (Hoặc package của bạn)
+package edu.uth.listingservice.DTO; 
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -7,9 +7,9 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
-// === THÊM IMPORT NÀY ===
+
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-// ======================
+
 
 import java.util.ArrayList;
 import java.util.List;

@@ -19,7 +19,7 @@ public class AdminListingController {
     @Autowired
     private AdminListingService adminListingService;
 
-  //  THAY ĐỔI: Xóa page, size và dùng Pageable
+  //   Xóa page, size và dùng Pageable
     @GetMapping
     public Page<ProductListing> getListingsByStatus(
             @RequestParam(defaultValue = "PENDING") String status,

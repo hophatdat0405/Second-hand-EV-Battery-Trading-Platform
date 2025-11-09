@@ -1,6 +1,5 @@
 // File: edu/uth/listingservice/Service/AdminListingServiceImpl.java
 package edu.uth.listingservice.Service;
-import org.springframework.cache.annotation.CacheEvict; 
 import edu.uth.listingservice.Model.ListingStatus;
 import edu.uth.listingservice.Model.ProductListing;
 import edu.uth.listingservice.Repository.ProductListingRepository;
@@ -17,18 +16,31 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import java.util.Date;
 import org.hibernate.Hibernate; 
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.cache.annotation.Caching;
-
-
+import edu.uth.listingservice.DTO.ProductDetailDTO;
+import edu.uth.listingservice.Service.ProductDetailService;
 import java.util.List;
 import java.util.ArrayList;
 import edu.uth.listingservice.Model.ProductImage;
 
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
+
+// SỬA: Thêm 2 import
+import org.springframework.cache.CacheManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Service
 public class AdminListingServiceImpl implements AdminListingService {
     
-   
+    // SỬA: Thêm Logger
+    private static final Logger log = LoggerFactory.getLogger(AdminListingServiceImpl.class);
+
+    // SỬA: Thêm CacheManager
+    @Autowired
+    private CacheManager cacheManager;
+    @Autowired
+    private ProductDetailService productDetailService;
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
     @Autowired
@@ -39,32 +51,29 @@ public class AdminListingServiceImpl implements AdminListingService {
     private String listingExchange;
     @Value("${app.rabbitmq.routing-key}")
     private String notificationRoutingKey;
-
+    @Value("${app.rabbitmq.product-events.exchange}")
+    private String productEventsExchange;
+    @Value("${app.rabbitmq.product-events.routing-key}")
+    private String productEventsRoutingKey;
 
     @Override
     @Cacheable(value = "adminListings", key = "#status.name() + '-' + #pageable.pageNumber + '-' + #pageable.pageSize + '-' + #pageable.sort")
     @Transactional(readOnly = true) 
     public Page<ProductListing> getListingsByStatus(ListingStatus status, Pageable pageable) {
         
+        // SỬA LỖI: Tên hàm là "findByListingStatus", không phải "findByStatus"
         Page<ProductListing> listingPage = listingRepository.findByListingStatus(status, pageable);
 
-        // === SỬA LỖI LAZY LOADING (BƯỚC CUỐI) ===
         listingPage.getContent().forEach(listing -> {
             if (listing.getProduct() != null) {
-                // 1. "Đánh thức" collection
                 Hibernate.initialize(listing.getProduct().getImages());
-                
-                // 2. (QUAN TRỌNG) Thay thế proxy bằng ArrayList
                 List<ProductImage> plainImages = new ArrayList<>(listing.getProduct().getImages());
                 listing.getProduct().setImages(plainImages);
             }
         });
-        // ===================================
 
         return listingPage;
     }
-
-    
     @Override
     @Cacheable(value = "adminSearchListings", key = "#query + '-' + #pageable.pageNumber + '-' + #pageable.pageSize + '-' + #pageable.sort")
     @Transactional(readOnly = true) 
@@ -72,33 +81,21 @@ public class AdminListingServiceImpl implements AdminListingService {
         
         Page<ProductListing> listingPage = listingRepository.searchByProductNameOrUserId(query, pageable);
 
-        // === SỬA LỖI LAZY LOADING (BƯỚC CUỐI) ===
         listingPage.getContent().forEach(listing -> {
             if (listing.getProduct() != null) {
-                // 1. "Đánh thức" collection
                 Hibernate.initialize(listing.getProduct().getImages());
-                
-                // 2. (QUAN TRỌNG) Thay thế proxy bằng ArrayList
                 List<ProductImage> plainImages = new ArrayList<>(listing.getProduct().getImages());
                 listing.getProduct().setImages(plainImages);
             }
         });
-        // ===================================
         
         return listingPage;
     }
     
  
-
+    // SỬA: BỎ ANNOTATION @Caching
     @Override
     @Transactional
-    @Caching(evict = {
-        @CacheEvict(value = "activeListings", allEntries = true),
-        @CacheEvict(value = "userListings", allEntries = true),
-        @CacheEvict(value = "adminListings", allEntries = true), 
-        @CacheEvict(value = "adminSearchListings", allEntries = true), 
-        @CacheEvict(value = "productDetails", key = "#result.product.productId")
-    })
     public ProductListing approveListing(Long listingId) {
         ProductListing listing = listingRepository.findById(listingId)
                 .orElseThrow(() -> new RuntimeException("Listing not found with ID: " + listingId));
@@ -110,37 +107,46 @@ public class AdminListingServiceImpl implements AdminListingService {
         listing.setListingStatus(ListingStatus.ACTIVE);
         listing.setAdminNotes(null);
         listing.setUpdatedAt(new Date());
-        listing.setListingDate(new Date()); // Cập nhật ngày duyệt
+        listing.setListingDate(new Date());
 
         ProductListing savedListing = listingRepository.save(listing);
+        
+        Long productId = savedListing.getProduct().getProductId();
 
         if (savedListing.getProduct() != null) {
             Hibernate.initialize(savedListing.getProduct());
         }
+        ProductDetailDTO dtoToSend = productDetailService.getProductDetail(productId);
 
-        ListingEventDTO event = new ListingEventDTO(
-            savedListing.getListingId(),
-            savedListing.getUserId(),
-            savedListing.getProduct().getProductName(),
-            "APPROVED" // Trạng thái sự kiện
-        );
-        rabbitTemplate.convertAndSend(listingExchange, notificationRoutingKey, event);
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                // BƯỚC 1: XÓA CACHE THỦ CÔNG
+                clearAllListingCaches();
+                evictProductCaches(savedListing);
 
-        AdminListingUpdateDTO updateDTO = new AdminListingUpdateDTO(savedListing);
-        messagingTemplate.convertAndSend("/topic/admin/listingUpdate", updateDTO);
+                // BƯỚC 2: GỬI TIN NHẮN
+                ListingEventDTO event = new ListingEventDTO(
+                    savedListing.getListingId(),
+                    savedListing.getUserId(),
+                    savedListing.getProduct().getProductName(),
+                    "APPROVED"
+                );
+                rabbitTemplate.convertAndSend(listingExchange, notificationRoutingKey, event);
 
+                AdminListingUpdateDTO updateDTO = new AdminListingUpdateDTO(savedListing);
+                messagingTemplate.convertAndSend("/topic/admin/listingUpdate", updateDTO);
+                
+                rabbitTemplate.convertAndSend(productEventsExchange, productEventsRoutingKey, dtoToSend);
+            }
+        });
+        
         return savedListing;
     }
 
+    // SỬA: BỎ ANNOTATION @Caching
     @Override
     @Transactional
-    @Caching(evict = {
-        @CacheEvict(value = "activeListings", allEntries = true),
-        @CacheEvict(value = "userListings", allEntries = true),
-        @CacheEvict(value = "adminListings", allEntries = true), 
-        @CacheEvict(value = "adminSearchListings", allEntries = true), 
-        @CacheEvict(value = "productDetails", key = "#result.product.productId")
-    })
     public ProductListing rejectListing(Long listingId, String reason) {
         ProductListing listing = listingRepository.findById(listingId)
                 .orElseThrow(() -> new RuntimeException("Listing not found with ID: " + listingId));
@@ -157,35 +163,42 @@ public class AdminListingServiceImpl implements AdminListingService {
         listing.setUpdatedAt(new Date());
 
         ProductListing savedListing = listingRepository.save(listing);
+        Long productId = savedListing.getProduct().getProductId();
 
         if (savedListing.getProduct() != null) {
             Hibernate.initialize(savedListing.getProduct());
         }
+        ProductDetailDTO dtoToSend = productDetailService.getProductDetail(productId);
+         
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                // BƯỚC 1: XÓA CACHE THỦ CÔNG
+                clearAllListingCaches();
+                evictProductCaches(savedListing);
+                
+                // BƯỚC 2: GỬI TIN NHẮN
+                ListingEventDTO event = new ListingEventDTO(
+                    savedListing.getListingId(),
+                    savedListing.getUserId(),
+                    savedListing.getProduct().getProductName(),
+                    "REJECTED" 
+                );
+                rabbitTemplate.convertAndSend(listingExchange, notificationRoutingKey, event);
 
-        ListingEventDTO event = new ListingEventDTO(
-            savedListing.getListingId(),
-            savedListing.getUserId(),
-            savedListing.getProduct().getProductName(),
-            "REJECTED" // Trạng thái sự kiện
-
-        );
-        rabbitTemplate.convertAndSend(listingExchange, notificationRoutingKey, event);
-
-        AdminListingUpdateDTO updateDTO = new AdminListingUpdateDTO(savedListing);
-        messagingTemplate.convertAndSend("/topic/admin/listingUpdate", updateDTO);
-
+                AdminListingUpdateDTO updateDTO = new AdminListingUpdateDTO(savedListing);
+                messagingTemplate.convertAndSend("/topic/admin/listingUpdate", updateDTO);
+                
+                rabbitTemplate.convertAndSend(productEventsExchange, productEventsRoutingKey, dtoToSend);
+            }
+        });
+        
         return savedListing;
     }
 
+    // SỬA: BỎ ANNOTATION @Caching
     @Override
     @Transactional
-@Caching(evict = {
-        @CacheEvict(value = "activeListings", allEntries = true),
-        @CacheEvict(value = "userListings", allEntries = true),
-        @CacheEvict(value = "adminListings", allEntries = true), 
-        @CacheEvict(value = "adminSearchListings", allEntries = true), 
-        @CacheEvict(value = "productDetails", key = "#result.product.productId")
-    })
     public ProductListing verifyListing(Long listingId) {
         ProductListing listing = listingRepository.findById(listingId)
                 .orElseThrow(() -> new RuntimeException("Listing not found with ID: " + listingId));
@@ -198,22 +211,66 @@ public class AdminListingServiceImpl implements AdminListingService {
         listing.setUpdatedAt(new Date());
         
         ProductListing savedListing = listingRepository.save(listing);
+        Long productId = savedListing.getProduct().getProductId();
 
         if (savedListing.getProduct() != null) {
             Hibernate.initialize(savedListing.getProduct());
         }
+        ProductDetailDTO dtoToSend = productDetailService.getProductDetail(productId);
         
-        ListingEventDTO event = new ListingEventDTO(
-            savedListing.getListingId(),
-            savedListing.getUserId(),
-            savedListing.getProduct().getProductName(),
-            "VERIFIED" // Trạng thái sự kiện
-        );
-        rabbitTemplate.convertAndSend(listingExchange, notificationRoutingKey, event);
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                // BƯỚC 1: XÓA CACHE THỦ CÔNG
+                clearAllListingCaches();
+                evictProductCaches(savedListing);
+                
+                // BƯỚC 2: GỬI TIN NHẮN
+                ListingEventDTO event = new ListingEventDTO(
+                    savedListing.getListingId(),
+                    savedListing.getUserId(),
+                    savedListing.getProduct().getProductName(),
+                    "VERIFIED"
+                );
+                rabbitTemplate.convertAndSend(listingExchange, notificationRoutingKey, event);
 
-        AdminListingUpdateDTO updateDTO = new AdminListingUpdateDTO(savedListing);
-        messagingTemplate.convertAndSend("/topic/admin/listingUpdate", updateDTO);
+                AdminListingUpdateDTO updateDTO = new AdminListingUpdateDTO(savedListing);
+                messagingTemplate.convertAndSend("/topic/admin/listingUpdate", updateDTO);
 
+                rabbitTemplate.convertAndSend(productEventsExchange, productEventsRoutingKey, dtoToSend);
+            }
+        });
+        
         return savedListing;
+    }
+
+    // =======================================================
+    // SỬA: THÊM 2 HÀM HELPER ĐỂ XÓA CACHE
+    // =======================================================
+    private void clearAllListingCaches() {
+        try {
+            cacheManager.getCache("activeListings").clear();
+            cacheManager.getCache("userListings").clear();
+            cacheManager.getCache("adminListings").clear();
+            cacheManager.getCache("adminSearchListings").clear();
+            cacheManager.getCache("userListingPage").clear();
+            cacheManager.getCache("relatedListings").clear(); // <--- THÊM DÒNG NÀ
+            log.info("Cleared all general listing caches.");
+        } catch (Exception e) {
+            log.warn("Error clearing all listing caches: {}", e.getMessage());
+        }
+    }
+    
+    private void evictProductCaches(ProductListing listing) {
+        if (listing == null || listing.getProduct() == null) return;
+        try {
+            Long productId = listing.getProduct().getProductId();
+            if (productId != null) {
+                cacheManager.getCache("productDetails").evictIfPresent(productId);
+                log.info("Evicted productDetails cache for productId: {}", productId);
+            }
+        } catch (Exception e) {
+             log.warn("Error evicting product-specific cache for {}: {}", listing.getListingId(), e.getMessage());
+        }
     }
 }

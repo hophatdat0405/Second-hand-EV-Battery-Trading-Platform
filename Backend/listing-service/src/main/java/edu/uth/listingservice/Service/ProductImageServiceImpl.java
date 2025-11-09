@@ -2,30 +2,35 @@ package edu.uth.listingservice.Service;
 
 import edu.uth.listingservice.Model.ProductImage;
 import edu.uth.listingservice.Repository.ProductImageRepository;
-import org.springframework.cache.CacheManager; // <-- THÊM IMPORT
+import org.springframework.cache.CacheManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional; // <-- THÊM IMPORT
+import org.springframework.transaction.annotation.Transactional; 
 import java.util.List;
 
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
 
+// Import đã có từ lần trước
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
+
 @Service
 public class ProductImageServiceImpl implements ProductImageService {
 
     @Autowired
     private ProductImageRepository productImageRepository;
-@Autowired
+    @Autowired
     private CacheManager cacheManager;
+    
     @Override
     public List<ProductImage> getAllImages() {
         return productImageRepository.findAll();
     }
 
     @Override
-@Cacheable(value = "productImage", key = "#id") 
+    @Cacheable(value = "productImage", key = "#id") 
     public ProductImage getImageById(Long id) {
         return productImageRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Image not found with ID: " + id));
@@ -37,40 +42,53 @@ public class ProductImageServiceImpl implements ProductImageService {
         return productImageRepository.findByProduct_ProductId(productId);
     }
 
+    // [SỬA] HÀM NÀY ĐÃ ĐƯỢC CẬP NHẬT
     @Override
-    @Caching(evict = {
-
-        @CacheEvict(value = "productImages", key = "#result.product.productId") 
-    })
+    @Transactional // [SỬA] Thêm @Transactional
+    // [SỬA] Bỏ @Caching
     public ProductImage createImage(ProductImage productImage) {
-        // BỔ SUNG: Xóa cache productDetails
-        if(productImage.getProduct() != null && productImage.getProduct().getProductId() != null) {
-            cacheManager.getCache("productDetails").evictIfPresent(productImage.getProduct().getProductId());
-        }
-        return productImageRepository.save(productImage);
+        ProductImage savedImage = productImageRepository.save(productImage);
+
+        // [SỬA] Dời logic cache vào afterCommit
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                if (savedImage.getProduct() != null) {
+                    Long productId = savedImage.getProduct().getProductId();
+                    if (productId != null) {
+                        cacheManager.getCache("productImages").evictIfPresent(productId);
+                        cacheManager.getCache("productDetails").evictIfPresent(productId);
+                    }
+                }
+                cacheManager.getCache("userListings").clear();
+                cacheManager.getCache("userListingPage").clear();
+            }
+        });
+        
+        return savedImage;
     }
 
-
-  @Override
+    // (Hàm deleteImage đã được refactor ở lần trước)
+    @Override
     @Transactional
-    // BỎ HẾT ANNOTATION @Caching ở đây
     public void deleteImage(Long id) {
-        // 1. Tìm ảnh TRƯỚC KHI XÓA để lấy thông tin
         ProductImage image = productImageRepository.findById(id).orElse(null);
-        
-        if (image == null) {
-            // Không tìm thấy ảnh, không làm gì cả
-            return;
-        }
-
+        if (image == null) { return; }
         Long productId = image.getProduct().getProductId();
 
-        // 2. Xóa tất cả cache liên quan bằng CacheManager
-        cacheManager.getCache("productDetails").evictIfPresent(productId);
-        cacheManager.getCache("productImages").evictIfPresent(productId); // Xóa danh sách ảnh của PId
-        cacheManager.getCache("productImage").evictIfPresent(id); // Xóa cache 'getById' của chính nó
-
-        // 3. Xóa ảnh khỏi DB
         productImageRepository.deleteById(id);
+
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                if (productId != null) {
+                    cacheManager.getCache("productDetails").evictIfPresent(productId);
+                    cacheManager.getCache("productImages").evictIfPresent(productId); 
+                }
+                cacheManager.getCache("productImage").evictIfPresent(id); 
+                cacheManager.getCache("userListings").clear();
+                cacheManager.getCache("userListingPage").clear();
+            }
+        });
     }
 }

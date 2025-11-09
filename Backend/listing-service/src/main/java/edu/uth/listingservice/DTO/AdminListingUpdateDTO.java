@@ -1,4 +1,4 @@
-// File mới: edu/uth/listingservice/DTO/AdminListingUpdateDTO.java
+
 package edu.uth.listingservice.DTO;
 
 import edu.uth.listingservice.Model.ListingStatus;
@@ -11,14 +11,14 @@ import java.util.Date;
 public class AdminListingUpdateDTO {
 
     private Long listingId;
-    private String productName; // Lấy thẳng productName
+    private String productName;
     private Long userId;
     private Date listingDate;
     private ListingStatus listingStatus;
     private boolean verified;
     private String adminNotes;
 
-    // Constructor rỗng
+
     public AdminListingUpdateDTO() {
     }
 
@@ -42,8 +42,7 @@ public class AdminListingUpdateDTO {
         this.adminNotes = listing.getAdminNotes();
     }
 
-    // Getters và Setters (Bắt buộc phải có để Jackson hoạt động)
-    
+
     public Long getListingId() { return listingId; }
     public void setListingId(Long listingId) { this.listingId = listingId; }
 

@@ -53,10 +53,10 @@ private Long price;
     private Date updatedAt = new Date();
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL,orphanRemoval = true)
-     @JsonManagedReference // ✅ THÊM DÒNG NÀY (Đánh dấu đây là "cha")
+     @JsonManagedReference
     private List<ProductImage> images;
 
     @OneToOne(mappedBy = "product", cascade = CascadeType.ALL)
-     @JsonManagedReference // ✅ THÊM DÒNG NÀY (Đánh dấu đây là "cha")
+     @JsonManagedReference 
     private ProductSpecification specification;
 }

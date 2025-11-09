@@ -58,4 +58,10 @@ private boolean updatedOnce = false;
 
     @Column(name = "admin_notes")
     private String adminNotes; // Ghi chú của admin, ví dụ: lý do từ chối
+    
+    @Column(name = "seller_name", length = 255)
+    private String sellerName;
+    
+    @Column(name = "seller_email", length = 255)
+    private String sellerEmail;
 }

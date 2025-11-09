@@ -3,9 +3,9 @@ package edu.uth.listingservice.Repository;
 import java.util.List;
 import java.util.Optional;
 
-import org.springframework.data.domain.Page; // Thêm import này
-
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -17,22 +17,24 @@ import edu.uth.listingservice.Model.ProductListing;
 
 @Repository
 public interface ProductListingRepository extends JpaRepository<ProductListing, Long> {
-     // Tìm các tin đăng đang hoạt động, có phân trang và sắp xếp
-// Phương thức này dùng cho trang quản lý của Admin
+    
+
+    @EntityGraph(attributePaths = {"product", "product.images"})
     Page<ProductListing> findByListingStatus(ListingStatus status, Pageable pageable);
 
-//  SỬA LỖI TẠI ĐÂY: Đổi kiểu trả về thành "Page"
-    // Dùng cho getActiveListings để lọc theo loại sản phẩm.
+
+    @EntityGraph(attributePaths = {"product", "product.images"})
     @Query("SELECT pl FROM ProductListing pl WHERE pl.listingStatus = :status AND pl.product.productType = :type")
     Page<ProductListing> findByStatusAndProductType(@Param("status") ListingStatus status, @Param("type") String type, Pageable pageable);
 
-     // THAY ĐỔI PHƯƠNG THỨC NÀY TỪ List<> thành Page<>
+
+    @EntityGraph(attributePaths = {"product", "product.images"})
     Page<ProductListing> findByUserId(Long userId, Pageable pageable);
  
-     ProductListing findByProduct_ProductId(Long productId);
+    ProductListing findByProduct_ProductId(Long productId);
+
 
  
-
     @Query(value = "SELECT pl.* FROM product_listings pl JOIN products p ON pl.product_id = p.product_id " +
                    "WHERE pl.listing_status = 'ACTIVE' " +
                    "AND p.product_type = :productType " +
@@ -42,7 +44,9 @@ public interface ProductListingRepository extends JpaRepository<ProductListing, 
                                                    @Param("excludeProductId") Long excludeProductId,
                                                    @Param("limit") int limit);
 
-     @Query("SELECT pl FROM ProductListing pl WHERE " +
+
+    @EntityGraph(attributePaths = {"product", "product.images"})
+    @Query("SELECT pl FROM ProductListing pl WHERE " +
            "LOWER(pl.product.productName) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
            "CAST(pl.userId AS string) LIKE CONCAT('%', :query, '%')")
     Page<ProductListing> searchByProductNameOrUserId(@Param("query") String query, Pageable pageable);
@@ -68,4 +72,7 @@ public interface ProductListingRepository extends JpaRepository<ProductListing, 
             @Param("userId") Long userId, 
             @Param("listingId") Long listingId
     );
+    
+
+    List<ProductListing> findByUserId(Long userId);
 }

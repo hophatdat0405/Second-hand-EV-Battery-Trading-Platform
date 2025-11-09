@@ -8,15 +8,15 @@ import org.springframework.web.multipart.MultipartFile;
 public interface ProductListingService {
     List<ProductListing> getAll();
     ProductListing getById(Long id);
-    // List<ProductListing> getByUserId(Long userId);
+  
     ProductListing create(ProductListing listing);
     ProductListing update(Long id, ProductListing listing);
     void delete(Long id);
     Page<ProductListing> getActiveListings(String type, String sortBy, int page, int size);
     List<ProductListing> findRandomRelated(String productType, Long excludeProductId, int limit);
     ProductListing updateListingDetails(Long listingId, UpdateListingDTO dto);
-ProductListing markAsSold(Long listingId);
-// Phương thức để thêm ảnh mới vào một listing đã có
+    ProductListing markAsSold(Long listingId);
+    // Phương thức để thêm ảnh mới vào một listing đã có
     ProductListing addImagesToListing(Long listingId, List<MultipartFile> files);
     
     // Phương thức để xóa một ảnh cụ thể bằng ID của ảnh
@@ -24,4 +24,6 @@ ProductListing markAsSold(Long listingId);
     Page<ProductListing> getByUserId(Long userId, int page, int size);
    //  HÀM MỚI:
     int findPageForListing(Long userId, Long listingId, int pageSize);
+
+
 }

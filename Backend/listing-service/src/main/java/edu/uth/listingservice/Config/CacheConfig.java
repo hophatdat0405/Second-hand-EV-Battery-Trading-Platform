@@ -19,14 +19,14 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JsonDeserializer; // Import DTO của bạn
+import com.fasterxml.jackson.databind.JsonDeserializer; 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
 import com.fasterxml.jackson.databind.jsontype.PolymorphicTypeValidator;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 
 import edu.uth.listingservice.DTO.RestPage;
-// ===============================================
+
 
 
 @Configuration
@@ -57,10 +57,10 @@ public class CacheConfig {
     @Bean
     public RedisCacheManager cacheManager(RedisConnectionFactory connectionFactory) {
         
-        // === BƯỚC 1: TẠO OBJECT MAPPER ===
+        // ===  TẠO OBJECT MAPPER ===
         ObjectMapper objectMapper = new ObjectMapper();
 
-        // === BƯỚC 2: (GIẢI PHÁP TÙY CHỈNH) ===
+        // === (GIẢI PHÁP TÙY CHỈNH) ===
         
         SimpleModule module = new SimpleModule();
         // Đăng ký Deserializer tùy chỉnh của chúng ta
@@ -69,7 +69,7 @@ public class CacheConfig {
 
         // =======================================================
         
-        // === BƯỚC 3: KÍCH HOẠT DEFAULT TYPING (BẮT BUỘC) ===
+        // ===  KÍCH HOẠT DEFAULT TYPING (BẮT BUỘC) ===
         // Để sửa lỗi LinkedHashMap và lưu trữ @class
         PolymorphicTypeValidator ptv = BasicPolymorphicTypeValidator.builder()
                 .allowIfBaseType(Object.class) // Cho phép mọi kiểu
@@ -82,20 +82,20 @@ public class CacheConfig {
         );
         // ====================================================
 
-        // === BƯỚC 4: BỎ QUA CÁC THUỘC TÍNH KHÔNG BIẾT (GIỮ NGUYÊN) ===
+        // ===  BỎ QUA CÁC THUỘC TÍNH KHÔNG BIẾT (GIỮ NGUYÊN) ===
         objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 
-        // === BƯỚC 5: DÙNG MAPPER TÙY CHỈNH CHO SERIALIZER (GIỮ NGUYÊN) ===
+        // ===  DÙNG MAPPER TÙY CHỈNH CHO SERIALIZER (GIỮ NGUYÊN) ===
         RedisCacheConfiguration jsonCacheConfig = RedisCacheConfiguration.defaultCacheConfig()
                 .serializeValuesWith(SerializationPair.fromSerializer(
                         new GenericJackson2JsonRedisSerializer(objectMapper) 
                 ));
 
-        // --- 6. Cấu hình TTL mặc định (GIỮ NGUYÊN) ---
+        // --- Cấu hình TTL mặc định (GIỮ NGUYÊN) ---
         RedisCacheConfiguration defaultConfig = jsonCacheConfig
                 .entryTtl(Duration.ofMinutes(10)); 
 
-        // --- 7. Tạo Map chứa các cấu hình TTL riêng biệt (GIỮ NGUYÊN) ---
+        // ---Tạo Map chứa các cấu hình TTL riêng biệt (GIỮ NGUYÊN) ---
         Map<String, RedisCacheConfiguration> cacheConfigurations = new HashMap<>();
 
         cacheConfigurations.put("productConditions", jsonCacheConfig.entryTtl(Duration.ofDays(1)));
@@ -112,10 +112,12 @@ public class CacheConfig {
         cacheConfigurations.put("productCondition", jsonCacheConfig.entryTtl(Duration.ofDays(1))); 
         cacheConfigurations.put("productImage", jsonCacheConfig.entryTtl(Duration.ofDays(1))); 
         cacheConfigurations.put("users", jsonCacheConfig.entryTtl(Duration.ofMinutes(5)));
-        // --- 8. Xây dựng CacheManager ---
+        // --- Xây dựng CacheManager ---
         return RedisCacheManager.builder(connectionFactory)
                 .cacheDefaults(defaultConfig) 
                 .withInitialCacheConfigurations(cacheConfigurations)
                 .build();
     }
+
+    
 }

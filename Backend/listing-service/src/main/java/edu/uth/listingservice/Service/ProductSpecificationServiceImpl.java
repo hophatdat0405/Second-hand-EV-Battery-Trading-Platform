@@ -19,6 +19,10 @@ import edu.uth.listingservice.Repository.ProductSpecificationRepository;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.cache.annotation.CacheEvict;
 
+// Import đã có từ lần trước
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
+
 @Service
 public class ProductSpecificationServiceImpl implements ProductSpecificationService {
 
@@ -29,7 +33,7 @@ public class ProductSpecificationServiceImpl implements ProductSpecificationServ
     @Autowired
     private ProductConditionRepository conditionRepository;
 
-    // (Hàm getAll, getById, getByProductId giữ nguyên)
+    // (Các hàm Read-Only giữ nguyên)
     @Override
     public List<ProductSpecification> getAll() {
         return specificationRepository.findAll();
@@ -38,7 +42,7 @@ public class ProductSpecificationServiceImpl implements ProductSpecificationServ
     @Cacheable(value = "productSpecs", key = "#id")
     public ProductSpecification getById(Long id) {
         return specificationRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Specification not found with ID: " + id));
+                .orElseThrow(() -> new RuntimeException("Specification not found with ID: ".concat(id.toString())));
     }
     @Override
     @Cacheable(value = "productSpecs", key = "'prod-' + #productId")
@@ -47,59 +51,58 @@ public class ProductSpecificationServiceImpl implements ProductSpecificationServ
     }
 
 
+    // [SỬA] HÀM NÀY ĐÃ ĐƯỢC CẬP NHẬT
     @Override
     @Transactional
- 
-    @Caching(evict = {
-        @CacheEvict(value = "productSpecs", allEntries = true), // Xóa cache danh sách
-        @CacheEvict(value = "productDetails", key = "#result.product.productId")
-    })
+    // [SỬA] Bỏ @Caching
     public ProductSpecification create(ProductSpecification specification) {
-        // 1. Xử lý logic nghiệp vụ (gắn Condition)
         if (specification.getCondition() != null && specification.getCondition().getConditionId() != null) {
             Long conditionId = specification.getCondition().getConditionId();
             ProductCondition managedCondition = conditionRepository.findById(conditionId)
-                    .orElseThrow(() -> new RuntimeException("Không tìm thấy Condition với ID: " + conditionId));
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy Condition với ID: ".concat(conditionId.toString())));
             specification.setCondition(managedCondition);
         } else {
             specification.setCondition(null);
         }
         
-        // 2. Lưu vào DB
         ProductSpecification savedSpec = specificationRepository.save(specification);
 
-    
+        // [SỬA] Dời logic cache vào afterCommit
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                // Xóa cache danh sách
+                cacheManager.getCache("productSpecs").clear(); 
+                
+                if (savedSpec.getProduct() != null) {
+                    Long productId = savedSpec.getProduct().getProductId();
+                    if (productId != null) {
+                        cacheManager.getCache("productDetails").evictIfPresent(productId);
+                    }
+                }
+            }
+        });
 
         return savedSpec;
     }
 
+    // [SỬA] HÀM NÀY ĐÃ ĐƯỢC CẬP NHẬT
     @Override
     @Transactional
-    
-    @Caching(evict = {
-        // Xóa cache chi tiết của sản phẩm
-        @CacheEvict(value = "productDetails", key = "#result.product.productId"),
-        // Xóa 2 cache của chính spec này
-        @CacheEvict(value = "productSpecs", key = "#id"),
-        @CacheEvict(value = "productSpecs", key = "'prod-' + #result.product.productId")
-    })
+    // [SỬA] Bỏ @Caching
     public ProductSpecification update(Long id, ProductSpecification updatedSpec) {
         ProductSpecification existingSpec = specificationRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Specification not found with ID: " + id));
+                .orElseThrow(() -> new RuntimeException("Specification not found with ID: ".concat(id.toString())));
 
-        
-
-        // 1. Xử lý logic nghiệp vụ (gắn Condition)
         if (updatedSpec.getCondition() != null && updatedSpec.getCondition().getConditionId() != null) {
             Long conditionId = updatedSpec.getCondition().getConditionId();
             ProductCondition managedCondition = conditionRepository.findById(conditionId)
-                    .orElseThrow(() -> new RuntimeException("Không tìm thấy Condition với ID: " + conditionId));
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy Condition với ID: ".concat(conditionId.toString())));
             existingSpec.setCondition(managedCondition);
         } else {
             existingSpec.setCondition(null);
         }
 
-        // 2. Cập nhật các trường thông tin khác (giữ nguyên)
         existingSpec.setYearOfManufacture(updatedSpec.getYearOfManufacture());
         existingSpec.setBrand(updatedSpec.getBrand());
         existingSpec.setMileage(updatedSpec.getMileage());
@@ -114,34 +117,52 @@ public class ProductSpecificationServiceImpl implements ProductSpecificationServ
         existingSpec.setChargeTime(updatedSpec.getChargeTime());
         existingSpec.setChargeCycles(updatedSpec.getChargeCycles());
 
-   
+        ProductSpecification savedSpec = specificationRepository.save(existingSpec);
 
-        // 4. Lưu
-        return specificationRepository.save(existingSpec);
+        // [SỬA] Dời logic cache vào afterCommit
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                if (savedSpec.getProduct() != null) {
+                    Long productId = savedSpec.getProduct().getProductId();
+                    if (productId != null) {
+                        cacheManager.getCache("productDetails").evictIfPresent(productId);
+                        cacheManager.getCache("productSpecs").evictIfPresent("prod-" + productId);
+                    }
+                }
+                cacheManager.getCache("productSpecs").evictIfPresent(id);
+                cacheManager.getCache("userListings").clear();
+                cacheManager.getCache("userListingPage").clear();
+            }
+        });
+
+        return savedSpec;
     }
 
+    // (Hàm delete đã được refactor ở lần trước)
     @Override
     @Transactional
     public void delete(Long id) {
-        // (Với hàm delete, dùng CacheManager thủ công là CHẤP NHẬN ĐƯỢC
-        // vì @CacheEvict không thể lấy productId từ biến `existingSpec`)
-
-        // 1. Tìm spec để lấy productId TRƯỚC KHI XÓA
         Optional<ProductSpecification> specOpt = specificationRepository.findById(id);
-        
-        if (specOpt.isEmpty()) {
-            return; // Không tìm thấy, không làm gì cả
-        }
+        if (specOpt.isEmpty()) { return; }
         
         ProductSpecification existingSpec = specOpt.get();
         Long productId = existingSpec.getProduct().getProductId();
 
-        // 2. Xóa
         specificationRepository.deleteById(id);
 
-        // 3. Xóa cache liên quan (Chuyển xuống sau khi xóa DB)
-        // (Vẫn còn race condition, nhưng tốt hơn là để ở trước)
-        cacheManager.getCache("productDetails").evictIfPresent(productId);
-        cacheManager.getCache("productSpecs").clear(); // Dùng clear() cho an toàn
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                cacheManager.getCache("userListings").clear();
+                cacheManager.getCache("userListingPage").clear();
+                
+                if (productId != null) {
+                    cacheManager.getCache("productDetails").evictIfPresent(productId);
+                    cacheManager.getCache("productSpecs").evictIfPresent("prod-" + productId);
+                }
+                cacheManager.getCache("productSpecs").evictIfPresent(id);
+            }
+        });
     }
 }

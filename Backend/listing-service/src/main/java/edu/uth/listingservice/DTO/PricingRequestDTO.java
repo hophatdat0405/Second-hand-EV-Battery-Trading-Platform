@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class PricingRequestDTO {
 
-    // --- Các trường cũ (Đã có) ---
+  
     private String productType;
     private String brand;
     private Integer yearOfManufacture;
@@ -20,10 +20,10 @@ public class PricingRequestDTO {
     private Integer chargeCycles;
     private String batteryLifespan;
 
-    // --- 3 TRƯỜNG BỊ THIẾU (BỔ SUNG) ---
+
     private Integer maxSpeed;
     private String color;
-    private String chargeTime; // (Nên thêm cả trường này, vì JS cũng gửi nó)
+    private String chargeTime;
     private String compatibleVehicle;
 
 }

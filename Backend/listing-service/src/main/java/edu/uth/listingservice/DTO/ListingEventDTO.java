@@ -1,14 +1,11 @@
-// File: edu/uth/listingservice/DTO/ListingEventDTO.java
+
 package edu.uth.listingservice.DTO;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 
-/**
- * Đây là đối tượng (thông điệp) được gửi qua RabbitMQ
- * khi có một sự kiện liên quan đến tin đăng.
- */
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

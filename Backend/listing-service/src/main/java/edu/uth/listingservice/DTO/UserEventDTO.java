@@ -1,23 +1,37 @@
 // File: src/main/java/edu/uth/listingservice/DTO/UserEventDTO.java
 package edu.uth.listingservice.DTO;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * DTO này chứa thông tin người dùng được gửi qua RabbitMQ từ User Service
  * để đồng bộ hóa.
+ *
+ * @JsonIgnoreProperties(ignoreUnknown = true) Bỏ qua bất kỳ trường nào 
+ * (như password, roles...) không được định nghĩa ở đây.
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class UserEventDTO {
+
+    /**
+     * @JsonProperty("userId") Map trường "userId" (từ JSON của User-Service)
+     * vào trường "id" của DTO này.
+     */
+    @JsonProperty("userId")
     private Integer id;
+
     private String name;
     private String email;
     private String phone;
     private String address;
-    private String eventType; // Ví dụ: "USER_CREATED", "USER_UPDATED"
+    
+    // Giữ lại eventType nếu User-Service có gửi, nếu không nó sẽ là null
+    private String eventType; 
 
     public UserEventDTO() {}
 
-    // Constructor (tùy chọn)
-    // Cần phải có Getters và Setters để Jackson có thể hoạt động
-
+    // getters / setters
     public Integer getId() {
         return id;
     }
