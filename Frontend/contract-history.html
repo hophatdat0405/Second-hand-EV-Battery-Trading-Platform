@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <title>Lịch sử hợp đồng - Second-hand EV</title>
+  
+  <link
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap"
+    rel="stylesheet"
+  />
+  <link
+    href="https://fonts.googleapis.com/icon?family=Material+Icons"
+    rel="stylesheet"
+  />
+  
+  <link rel="stylesheet" href="css/contract-history.css" />
+</head>
+
+<body>
+  <div class="contract-container">
+    
+    <h2>
+      <span class="material-icons">history_edu</span>
+      Lịch sử hợp đồng đã ký
+    </h2>
+    <p class="desc">
+      Dưới đây là danh sách các hợp đồng bạn đã ký trong hệ thống Second-hand EV.
+    </p>
+
+    <div class="contract-history-table">
+      <table id="historyTable">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Tên sản phẩm</th>
+            <th>Giá trị</th>
+            <th>Ngày ký</th>
+            <th>File hợp đồng</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td colspan="5" class="loading">Đang tải dữ liệu...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script src="js/contract-history.js"></script>
+</body>
+</html>
