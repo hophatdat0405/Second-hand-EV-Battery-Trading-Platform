@@ -1,0 +1,133 @@
+/* Thiết lập cơ bản và Biến màu (Variables) - LẤY TỪ WALLET.CSS */
+:root {
+  --primary-green: #28a745;
+  --primary-dark: #218838;
+  --secondary-light: #eaf6ec;
+  --success-green: #28a745;
+  --danger-red: #dc3545;
+  --bg-color: #f7f9f7;
+  --text-color: #222;
+  --text-gray-light: #888;
+  --shadow-main: 0 8px 30px rgba(0, 0, 0, 0.08);
+  --border-radius-lg: 12px;
+  --border-color: #eee;
+}
+
+/* Kiểu Body - LẤY TỪ WALLET.CSS */
+body {
+  font-family: "Poppins", sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  margin: 0;
+  line-height: 1.6;
+}
+
+/* Kiểu Container Dashboard (Mới) */
+.dashboard-container {
+  max-width: 1200px;
+  margin: 30px auto;
+  padding: 0 2rem;
+  display: grid;
+  gap: 25px;
+  /* Chia layout cho 12 cột */
+  grid-template-columns: repeat(12, 1fr);
+}
+
+/* Kiểu Thẻ (Card) - LẤY TỪ WALLET.CSS */
+.dashboard-card {
+  background: #fff;
+  padding: 30px;
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-main);
+}
+
+/* Thẻ số dư (Mới) */
+.balance-card {
+  /* THAY ĐỔI: Chiếm 12/12 cột */
+  grid-column: span 12;
+  text-align: center;
+}
+.balance-amount {
+  font-size: 2.8rem;
+  font-weight: 700;
+  color: var(--primary-green);
+  margin-top: 20px;
+}
+
+/* === CẬP NHẬT BỐ CỤC BẢNG (Một cột) === */
+.table-card {
+  /* THAY ĐỔI: Chiếm 12/12 cột */
+  grid-column: span 12;
+}
+
+/* XÓA BỎ: .table-card-large và .table-card-full vì không cần nữa */
+
+/* === KẾT THÚC CẬP NHẬT === */
+
+/* Kiểu tiêu đề H2 trong Card (Mới) */
+.card-title {
+  color: var(--primary-dark);
+  font-size: 1.5em;
+  font-weight: 600;
+  margin: 0 0 20px 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 10px;
+  border-bottom: 3px solid var(--secondary-light);
+}
+.card-title .material-icons {
+  font-size: 1.3em;
+  color: var(--primary-green);
+}
+
+/* Kiểu Bảng - LẤY TỪ WALLET.CSS */
+.wallet-history-table {
+  overflow-x: auto; /* Thêm cuộn ngang nếu bảng quá rộng */
+}
+.wallet-history-table table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+.wallet-history-table th {
+  background: var(--primary-green);
+  color: white;
+  padding: 12px 15px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  text-align: left;
+}
+.wallet-history-table td {
+  border-bottom: 1px solid var(--border-color);
+  padding: 12px 15px;
+  text-align: left;
+  transition: background 0.3s;
+}
+.wallet-history-table tr:nth-child(even) {
+  background: #f7f9fc;
+}
+.wallet-history-table tr:hover {
+  background: var(--secondary-light);
+  cursor: pointer;
+}
+
+/* Trạng thái Giao dịch */
+.amount-credit {
+  color: var(--success-green);
+  font-weight: 600;
+}
+.amount-debit {
+  color: var(--danger-red);
+  font-weight: 600;
+}
+.loading {
+  text-align: center;
+  color: var(--text-gray-light);
+  font-style: italic;
+  padding: 20px !important;
+}

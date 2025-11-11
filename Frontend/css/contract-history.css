@@ -1,0 +1,120 @@
+/* Thiết lập cơ bản và Biến màu (Variables) - LẤY TỪ WALLET.CSS */
+:root {
+  --primary-green: #28a745;
+  --primary-dark: #218838;
+  --secondary-light: #eaf6ec;
+  --success-green: #28a745;
+  --danger-red: #dc3545;
+  --bg-color: #f7f9f7;
+  --text-color: #222;
+  --text-gray-light: #888;
+  --shadow-main: 0 8px 30px rgba(0, 0, 0, 0.08);
+  --border-radius-lg: 12px;
+  --border-color: #eee;
+}
+
+/* Kiểu Body - LẤY TỪ WALLET.CSS */
+body {
+  margin: 0;
+  font-family: "Poppins", sans-serif; /* Đổi font */
+  background: var(--bg-color); /* Đổi nền */
+  color: var(--text-color);
+  padding: 20px; /* Thêm padding chung */
+}
+
+/* Container Chính (Giống .wallet-container) */
+.contract-container {
+  width: 90%;
+  max-width: 1100px;
+  margin: 30px auto;
+  background: #fff;
+  padding: 30px 40px;
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-main);
+}
+
+/* Navbar & Footer (ĐÃ XÓA) */
+
+/* Kiểu tiêu đề (Giống h2 của wallet.css) */
+h2 {
+  margin-top: 0;
+  color: var(--primary-dark);
+  font-size: 1.5em;
+  padding-left: 10px;
+  border-left: 4px solid var(--primary-green);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+h2 .material-icons {
+  font-size: 1.3em;
+  color: var(--primary-green);
+}
+
+.desc {
+  margin-bottom: 25px;
+  color: #555;
+  padding-left: 14px; /* Căn lề với h2 */
+}
+
+/* Kiểu Bảng - LẤY TỪ WALLET.CSS */
+.contract-history-table table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+.contract-history-table th {
+  background: var(--primary-green); /* Đổi màu nền */
+  color: white;
+  padding: 12px 16px;
+  text-align: left; /* Căn trái cho đồng bộ */
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.contract-history-table td {
+  padding: 12px 16px;
+  text-align: left; /* Căn trái cho đồng bộ */
+  border-bottom: 1px solid var(--border-color);
+  transition: background 0.3s;
+}
+
+.contract-history-table tr:hover {
+  background: var(--secondary-light); /* Đổi màu hover */
+}
+
+/* Kiểu nút "Xem" (Đồng bộ với nút chính) */
+.btn-view {
+  background: var(--primary-green);
+  color: #fff;
+  padding: 8px 14px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 2px solid var(--primary-green);
+}
+.btn-view:hover {
+  background: var(--primary-dark);
+  border-color: var(--primary-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(40, 167, 69, 0.3);
+}
+
+/* Kiểu Loading (Đồng bộ) */
+.loading {
+  text-align: center;
+  color: var(--text-gray-light);
+  font-style: italic;
+  padding: 20px !important;
+}
+/* Căn giữa td (cho .loading) */
+.contract-history-table td.loading {
+  text-align: center;
+}

@@ -1,0 +1,118 @@
+/* Thiết lập cơ bản và Biến màu (Variables) - LẤY TỪ WALLET.CSS */
+:root {
+  --primary-green: #28a745;
+  --primary-dark: #218838;
+  --secondary-light: #eaf6ec;
+  --success-green: #28a745;
+  --danger-red: #dc3545;
+  --danger-dark: #c82333;
+  --danger-light: #f8d7da;
+  --bg-color: #f7f9f7;
+  --text-color: #222;
+  --shadow-main: 0 8px 30px rgba(0, 0, 0, 0.08);
+  --border-radius-lg: 12px;
+}
+
+/* Kiểu Body - LẤY TỪ WALLET.CSS */
+body {
+  font-family: "Poppins", sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  margin: 0;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+/* Container Chính (Giống .deposit-container) */
+.status-container {
+  max-width: 420px;
+  width: 100%;
+  margin: 30px auto;
+  background: #fff;
+  padding: 40px;
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-main);
+  text-align: center;
+}
+
+/* Icon (Mới) */
+.status-icon {
+  font-size: 6rem; /* Icon cực lớn */
+  line-height: 1;
+}
+.success-card .status-icon {
+  color: var(--success-green);
+}
+.error-card .status-icon {
+  color: var(--danger-red);
+}
+
+/* Tiêu đề (Mới) */
+h1 {
+  font-weight: 700;
+  font-size: 2.2em;
+  margin-top: 15px;
+  margin-bottom: 10px;
+}
+.success-card h1 {
+  color: var(--primary-dark);
+}
+.error-card h1 {
+  color: var(--danger-dark);
+}
+
+p {
+  font-size: 1.1em;
+  color: #555;
+  margin-bottom: 30px;
+}
+
+/* Kiểu Nút Bấm (Dùng cho thẻ <a>) - LẤY TỪ WALLET.CSS */
+.btn {
+  padding: 12px 25px;
+  border: 2px solid var(--primary-green);
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 16px;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-decoration: none;
+}
+.btn .material-icons {
+  font-size: 1.2rem;
+}
+
+/* Nút phụ (Secondary) cho "Quay lại ví" */
+.btn.btn-secondary {
+  background: #fff;
+  color: var(--primary-green);
+  border-color: var(--primary-green);
+}
+.btn.btn-secondary:hover {
+  background: var(--secondary-light);
+  border-color: var(--primary-dark);
+  color: var(--primary-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(40, 167, 69, 0.1);
+}
+
+/* Nút Đỏ (Danger) cho "Thử lại" */
+.btn.btn-danger {
+  background: var(--danger-red);
+  color: white;
+  border-color: var(--danger-red);
+}
+.btn.btn-danger:hover {
+  background: var(--danger-dark);
+  border-color: var(--danger-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(220, 53, 69, 0.3);
+}

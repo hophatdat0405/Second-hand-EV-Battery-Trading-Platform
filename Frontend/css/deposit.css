@@ -1,0 +1,137 @@
+/* Thiết lập cơ bản và Biến màu (Variables) - LẤY TỪ WALLET.CSS */
+:root {
+  --primary-green: #28a745;
+  --primary-dark: #218838;
+  --secondary-light: #eaf6ec;
+  --success-green: #28a745;
+  --danger-red: #dc3545;
+  --bg-color: #f7f9f7;
+  --text-color: #222;
+  --shadow-main: 0 8px 30px rgba(0, 0, 0, 0.08);
+  --border-radius-lg: 12px;
+  --border-color: #ccc;
+  --text-gray-light: #888;
+}
+
+/* Kiểu Body - LẤY TỪ WALLET.CSS */
+body {
+  font-family: "Poppins", sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  margin: 0;
+  padding: 20px;
+}
+
+/* Container Chính (Giống .wallet-container) */
+.deposit-container {
+  max-width: 450px; /* Hơi rộng hơn 1 chút */
+  margin: 60px auto;
+  background: #fff;
+  padding: 30px 40px;
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-main);
+  text-align: center;
+}
+
+/* Tiêu đề (Giống h1 của wallet.css) */
+h1 {
+  color: var(--primary-green);
+  font-weight: 700;
+  font-size: 1.8em; /* Hơi nhỏ hơn h1 của wallet */
+  margin-top: 0;
+  margin-bottom: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+h1 .material-icons {
+  font-size: 1.3em;
+}
+
+/* Form */
+.deposit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+label {
+  font-weight: 600;
+  text-align: left;
+  color: #555;
+  margin-bottom: -5px; /* Gần input hơn */
+}
+
+/* Kiểu Input (Giống modal của payroll.css) */
+.input-field {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 15px;
+  outline: none;
+  transition: all 0.3s;
+  box-sizing: border-box; /* Quan trọng */
+}
+.input-field:focus {
+  border-color: var(--primary-green);
+  box-shadow: 0 0 0 3px var(--secondary-light);
+}
+
+/* Kiểu Nút Bấm - LẤY TỪ WALLET.CSS */
+button {
+  padding: 12px 20px; /* Hơi cao hơn 1 chút */
+  background: var(--primary-green);
+  color: white;
+  border: 2px solid var(--primary-green);
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 16px; /* Cỡ chữ to hơn */
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center; /* Căn giữa nút */
+  gap: 8px;
+  margin-top: 10px; /* Thêm margin */
+}
+button:hover {
+  background: var(--primary-dark);
+  border-color: var(--primary-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(40, 167, 69, 0.3);
+}
+
+/* Nút phụ (Secondary) cho "Quay lại" */
+button.btn-secondary {
+  background: #fff;
+  color: var(--primary-green);
+  border: 2px solid var(--primary-green);
+  margin-top: 20px;
+}
+button.btn-secondary:hover {
+  background: var(--secondary-light);
+  border-color: var(--primary-dark);
+  color: var(--primary-dark);
+  box-shadow: 0 4px 10px rgba(40, 167, 69, 0.1);
+}
+
+button .material-icons {
+  font-size: 1.2rem;
+}
+
+/* Thông báo (Sử dụng biến màu) */
+.message {
+  margin-top: 15px;
+  font-size: 14px;
+  font-weight: 500;
+}
+.message.loading {
+  color: var(--primary-green);
+}
+.message.success {
+  color: var(--success-green);
+}
+.message.error {
+  color: var(--danger-red);
+}

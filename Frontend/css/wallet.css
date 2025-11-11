@@ -1,0 +1,213 @@
+/* Thiết lập cơ bản và Biến màu (Variables) - ĐÃ CẬP NHẬT CHỦ ĐỀ XANH LÁ */
+:root {
+  --primary-green: #28a745; /* Xanh lá chủ đạo (từ success-green cũ) */
+  --primary-dark: #218838; /* Xanh lá đậm hơn cho hover/active */
+  --secondary-light: #eaf6ec; /* Xanh lá nhạt cho nền/hover */
+  --success-green: #28a745; /* Vẫn giữ cho Ghi Có (Credit) */
+  --danger-red: #dc3545; /* Đỏ cho Ghi Nợ (Debit) */
+  --bg-color: #f7f9f7; /* Nền xám xanh siêu nhạt */
+  --text-color: #222;
+  --shadow-main: 0 8px 30px rgba(0, 0, 0, 0.08); /* Đổ bóng mạnh hơn */
+  --border-radius-lg: 12px;
+}
+
+body {
+  font-family: "Poppins", sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  margin: 0;
+  padding: 20px;
+  line-height: 1.6;
+}
+
+/* Container Chính */
+.wallet-container {
+  max-width: 900px;
+  margin: 30px auto; /* Tối ưu margin */
+  background: #fff;
+  padding: 30px 40px;
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-main);
+  transition: transform 0.3s ease-in-out;
+}
+
+/* Tiêu đề - ĐÃ CẬP NHẬT */
+h1 {
+  text-align: center;
+  color: var(--primary-green); /* THAY ĐỔI: Màu xanh lá */
+  font-weight: 700;
+  font-size: 2.2em;
+  padding-bottom: 10px;
+  border-bottom: 3px solid var(--secondary-light);
+  margin-bottom: 30px;
+  /* THÊM MỚI: Căn chỉnh icon */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+/* THÊM MỚI: Định cỡ icon trong h1 */
+h1 .material-icons {
+  font-size: 1.2em; /* Kích thước icon lớn hơn một chút */
+}
+
+h2 {
+  color: var(--primary-dark);
+  font-size: 1.5em;
+  margin-top: 25px;
+  padding-left: 10px;
+  border-left: 4px solid var(--primary-green); /* THAY ĐỔI: Màu xanh lá */
+}
+
+/* Số dư */
+.wallet-balance {
+  text-align: center;
+  margin-bottom: 40px;
+  padding: 20px;
+  background-color: var(--secondary-light); /* THAY ĐỔI: Nền xanh lá nhạt */
+  border-radius: var(--border-radius-lg);
+}
+
+#balance {
+  font-size: 2.5rem; /* Cỡ lớn hơn để nổi bật */
+  color: var(--success-green);
+  font-weight: bold;
+  margin: 10px 0;
+  letter-spacing: 0.5px;
+  display: block; /* Đảm bảo nó là khối riêng */
+}
+
+/* === BẢN CẬP NHẬT CHO NÚT BẤM (CHÍNH & PHỤ) === */
+
+/* Nút - (Kiểu nút chính - Primary) */
+button {
+  padding: 10px 20px;
+  background: var(--primary-green);
+  color: white;
+  border: 2px solid var(--primary-green); /* Thêm border để nhất quán */
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease; /* Hiệu ứng mượt hơn */
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+button:hover {
+  background: var(--primary-dark);
+  border-color: var(--primary-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(40, 167, 69, 0.3);
+}
+button:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+/* THÊM MỚI: Kiểu nút phụ (Secondary) cho "Làm mới" */
+button.btn-secondary {
+  background: #fff; /* Nền trắng */
+  color: var(--primary-green); /* Chữ xanh lá */
+  border: 2px solid var(--primary-green); /* Viền xanh lá */
+}
+button.btn-secondary:hover {
+  background: var(--secondary-light); /* Nền xanh lá nhạt khi hover */
+  border-color: var(--primary-dark);
+  color: var(--primary-dark);
+  box-shadow: 0 4px 10px rgba(40, 167, 69, 0.1); /* Bóng mờ hơn */
+}
+
+/* THÊM MỚI: Căn chỉnh icon trong TẤT CẢ các nút */
+button .material-icons {
+  font-size: 1.1rem;
+}
+
+/* THÊM MỚI: Container cho các nút trong phần số dư */
+.wallet-actions {
+  display: flex;
+  justify-content: center;
+  gap: 15px; /* Khoảng cách giữa 2 nút */
+  margin-top: 15px; /* Khoảng cách với số dư */
+}
+/* === KẾT THÚC PHẦN CẬP NHẬT NÚT BẤM === */
+
+/* Bảng Lịch sử giao dịch - ĐÃ CẬP NHẬT */
+.wallet-history table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+  border-radius: 8px;
+  overflow: hidden; /* Cần thiết để bo góc cho bảng */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.wallet-history th {
+  background: var(--primary-green); /* THAY ĐỔI: Màu xanh lá */
+  color: white;
+  padding: 12px 15px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  text-align: left; /* Căn lề trái cho header */
+}
+
+.wallet-history td {
+  border-bottom: 1px solid #eee;
+  padding: 12px 15px;
+  text-align: left; /* Căn lề trái cho nội dung */
+  transition: background 0.3s;
+}
+
+.wallet-history tr:nth-child(even) {
+  background: #f7f9fc; /* Sọc ngựa nhẹ */
+}
+
+.wallet-history tr:hover {
+  background: var(--secondary-light); /* THAY ĐỔI: Xanh lá nhạt khi hover */
+  cursor: pointer;
+}
+
+/* === BẢN CẬP NHẬT CHO BIỂU TƯỢNG LOẠI GIAO DỊCH === */
+.credit {
+  color: var(--success-green);
+  font-weight: 600;
+}
+.debit {
+  color: var(--danger-red);
+  font-weight: 600;
+}
+
+/* Căn chỉnh cột "Loại" (cột thứ 2) để chứa icon */
+.wallet-history tbody tr td:nth-child(2) {
+  display: flex;
+  align-items: center;
+  gap: 8px; /* Khoảng cách giữa icon và chữ */
+  font-weight: 600; /* Làm đậm chữ "Nhận" / "Chi" */
+}
+
+/* Icon Mũi tên LÊN cho Credit (Nhận) */
+.wallet-history tbody tr td:nth-child(2).credit::before {
+  font-family: 'Material Icons';
+  content: 'arrow_upward'; /* Icon mũi tên đi lên */
+  font-size: 1.2rem;
+  line-height: 1;
+  /* Màu sắc được tự động kế thừa từ class .credit (xanh lá) */
+}
+
+/* Icon Mũi tên XUỐNG cho Debit (Chi) */
+.wallet-history tbody tr td:nth-child(2).debit::before {
+  font-family: 'Material Icons';
+  content: 'arrow_downward'; /* Icon mũi tên đi xuống */
+  font-size: 1.2rem;
+  line-height: 1;
+  /* Màu sắc được tự động kế thừa từ class .debit (đỏ) */
+}
+/* === Kết thúc phần cập nhật === */
+
+.loading {
+  text-align: center;
+  color: #888;
+  font-style: italic;
+  padding: 20px !important;
+}

@@ -1,0 +1,266 @@
+/* Thiết lập cơ bản và Biến màu (Variables) - LẤY TỪ WALLET.CSS */
+:root {
+  --primary-green: #28a745;
+  --primary-dark: #218838;
+  --secondary-light: #eaf6ec;
+  --success-green: #28a745;
+  --danger-red: #dc3545;
+  --bg-color: #f7f9f7;
+  --text-color: #222;
+  --shadow-main: 0 8px 30px rgba(0, 0, 0, 0.08);
+  --border-radius-lg: 12px;
+  --border-color: #eee;
+  --text-gray-light: #888;
+}
+
+/* Kiểu Body - LẤY TỪ WALLET.CSS */
+body {
+  font-family: "Poppins", sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  margin: 0;
+  padding: 20px;
+  line-height: 1.6;
+}
+
+/* Container Chính - LẤY TỪ WALLET.CSS */
+.payroll-container {
+  max-width: 900px; /* Giảm độ rộng một chút cho phù hợp */
+  margin: 30px auto;
+  background: #fff;
+  padding: 30px 40px;
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-main);
+}
+
+/* Tiêu đề - LẤY TỪ WALLET.CSS */
+h1 {
+  text-align: center;
+  color: var(--primary-green);
+  font-weight: 700;
+  font-size: 2.2em;
+  padding-bottom: 10px;
+  border-bottom: 3px solid var(--secondary-light);
+  margin-bottom: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+h1 .material-icons {
+  font-size: 1.2em;
+}
+
+h2 {
+  color: var(--primary-dark);
+  font-size: 1.5em;
+  padding-left: 10px;
+  border-left: 4px solid var(--primary-green);
+}
+
+/* Khu vực Header (Mới) */
+.header-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+/* Kiểu Nút Bấm - LẤY TỪ WALLET.CSS */
+button {
+  padding: 10px 20px;
+  background: var(--primary-green);
+  color: white;
+  border: 2px solid var(--primary-green);
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+button:hover {
+  background: var(--primary-dark);
+  border-color: var(--primary-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(40, 167, 69, 0.3);
+}
+button.btn-secondary {
+  background: #fff;
+  color: var(--primary-green);
+  border: 2px solid var(--primary-green);
+}
+button.btn-secondary:hover {
+  background: var(--secondary-light);
+  border-color: var(--primary-dark);
+  color: var(--primary-dark);
+  box-shadow: 0 4px 10px rgba(40, 167, 69, 0.1);
+}
+button .material-icons {
+  font-size: 1.1rem;
+}
+
+/* Kiểu Bảng - LẤY TỪ WALLET.CSS */
+.payroll-history table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+.payroll-history th {
+  background: var(--primary-green);
+  color: white;
+  padding: 12px 15px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  text-align: left;
+}
+.payroll-history td {
+  border-bottom: 1px solid var(--border-color);
+  padding: 12px 15px;
+  text-align: left;
+  transition: background 0.3s;
+}
+.payroll-history tr:nth-child(even) {
+  background: #f7f9fc;
+}
+.payroll-history tr:hover {
+  background: var(--secondary-light);
+  cursor: pointer;
+}
+.payroll-history .loading {
+  text-align: center;
+  color: var(--text-gray-light);
+  font-style: italic;
+  padding: 20px !important;
+}
+.text-center {
+  text-align: center !important;
+}
+
+/* Kiểu Trạng thái (Mới) */
+.status {
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.9em;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.status-active {
+  background-color: var(--secondary-light);
+  color: var(--primary-dark);
+}
+.status-paused {
+  background-color: #f3f4f6; /* Gray light */
+  color: #555;
+}
+
+/* Kiểu Nút Hành động trong Bảng (Mới) */
+.action-btn {
+  background: none;
+  border: none;
+  color: var(--text-gray-light);
+  padding: 5px;
+  margin: 0 2px;
+  border-radius: 50%;
+  box-shadow: none;
+}
+.action-btn:hover {
+  background: var(--secondary-light);
+  color: var(--primary-green);
+  transform: none;
+  box-shadow: none;
+}
+.action-btn.delete:hover {
+  background: #fdebeE; /* Red light */
+  color: var(--danger-red);
+}
+
+/* Kiểu Modal (Mới - Tạo kiểu lại) */
+.modal-backdrop {
+  display: none; /* Ẩn ban đầu, JS sẽ chuyển thành 'flex' */
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+.modal-content {
+  background: #fff;
+  padding: 30px;
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-main);
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+}
+.modal-close-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  color: var(--text-gray-light);
+  cursor: pointer;
+  padding: 5px;
+  box-shadow: none;
+}
+.modal-close-btn:hover {
+  background: #f3f4f6;
+  color: #333;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Kiểu Form trong Modal (Mới) */
+#editForm div {
+  margin-bottom: 15px;
+}
+#editForm label {
+  display: block;
+  font-weight: 600;
+  color: #555;
+  margin-bottom: 5px;
+}
+.input-field {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  transition: all 0.3s;
+  box-sizing: border-box; /* Đảm bảo padding không làm vỡ layout */
+}
+.input-field:focus {
+  outline: none;
+  border-color: var(--primary-green);
+  box-shadow: 0 0 0 3px var(--secondary-light);
+}
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 20px;
+  margin-bottom: 0; /* Xóa margin-bottom của div cuối cùng */
+}
+
+/* Hiệu ứng modal */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.animate-fadeIn {
+  animation: fadeIn 0.25s ease-out;
+}
