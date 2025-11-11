@@ -55,19 +55,20 @@
           </h2>
 
           <!-- Order summary -->
-          <div class="order-summary mb-8 border-b pb-6">
+          <div class="order-summary mb-8 border-b pb-6" id="order-summary">
             <h3 class="font-semibold text-lg mb-2">Thông tin đơn hàng</h3>
-            <div class="flex justify-between text-gray-700">
-              <span>VinFast VF8 Plus (2023)</span>
-              <span class="font-bold text-green-600">1.2 tỷ</span>
-            </div>
-            <div class="flex justify-between text-gray-700 mt-1">
-              <span>Phí dịch vụ</span>
-              <span>5 triệu</span>
-            </div>
-            <div class="flex justify-between text-lg font-bold mt-3">
-              <span>Tổng cộng</span>
-              <span class="text-green-600">1.205.000.000 đ</span>
+            <p id="cart-error" class="text-red-500 hidden">
+              Không thể tải dữ liệu giỏ hàng. Vui lòng thử lại!
+            </p>
+            <div id="cart-content" class="space-y-2 text-gray-700 hidden">
+              <div class="flex justify-between">
+                <span id="product-name">Đang tải...</span>
+                <span id="product-price" class="font-bold text-green-600">...</span>
+              </div>
+              <div class="flex justify-between text-lg font-bold mt-3">
+                <span>Tổng cộng</span>
+                <span id="total-price" class="text-green-600">...</span>
+              </div>
             </div>
           </div>
 
@@ -132,23 +133,6 @@
             <div class="option">
               <input
                 type="radio"
-                id="cash"
-                name="payment"
-                value="cash"
-                class="radio"
-              />
-              <label for="cash" class="flex-1 cursor-pointer">
-                <span class="font-semibold">Tiền mặt khi nhận</span>
-                <p class="text-gray-500 text-sm">
-                  Thanh toán trực tiếp với người bán khi giao dịch.
-                </p>
-              </label>
-              <i data-lucide="wallet" class="w-6 h-6 text-green-600"></i>
-            </div>
-
-            <div class="option">
-              <input
-                type="radio"
                 id="online"
                 name="payment"
                 value="online"
@@ -161,6 +145,25 @@
                 </p>
               </label>
               <i data-lucide="credit-card" class="w-6 h-6 text-purple-600"></i>
+            </div>
+
+            <div class="option">
+              <input
+                type="radio"
+                id="ev-wallet"
+                name="payment"
+                value="ev-wallet"
+                class="radio"
+              />
+              <label for="ev-wallet" class="flex-1 cursor-pointer">
+                <span class="font-semibold">Ví EV</span>
+                <p class="text-gray-500 text-sm">
+                  Hỗ trợ ví điện tử EV.
+                </p>
+              </label>
+              
+              <i data-lucide="wallet" class="w-6 h-6 text-purple-600"></i>
+              
             </div>
 
             <!-- Confirm button -->

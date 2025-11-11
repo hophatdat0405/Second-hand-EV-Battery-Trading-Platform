@@ -53,34 +53,26 @@
           <p class="text-gray-600 text-center mb-8">
             Vui lòng chọn phương thức thanh toán:
           </p>
-
-          <!-- E-wallet -->
-          <div class="option mb-4">
-            <i data-lucide="smartphone" class="w-6 h-6 text-pink-600"></i>
+          <!-- MOMO -->
+          <label class="option mb-4 cursor-pointer flex items-center gap-4 border rounded-lg p-4 hover:bg-pink-50">
+            <input type="radio" name="method" value="momo" class="w-5 h-5 text-pink-600 focus:ring-pink-500" />
             <div class="flex-1">
-              <span class="font-semibold">Ví điện tử (Momo / ZaloPay)</span>
-              <p class="text-sm text-gray-500">
-                Quét mã QR để thanh toán nhanh chóng.
-              </p>
+              <span class="font-semibold text-pink-700">MOMO</span>
+              <p class="text-sm text-gray-500">Thanh toán qua cổng MOMO.</p>
             </div>
-            <img
-              src="assets/qr_momo.png"
-              alt="QR Momo"
-              class="w-24 h-24 rounded shadow"
-            />
-          </div>
+            <img src="images/logo_momo.png" alt="Logo Momo" class="w-20 h-20 rounded shadow" />
+          </label>
 
-          <!-- Banking -->
-          <div class="option mb-6">
-            <i data-lucide="banknote" class="w-6 h-6 text-green-600"></i>
+          <!-- VNPAY -->
+          <label class="option mb-4 cursor-pointer flex items-center gap-4 border rounded-lg p-4 hover:bg-blue-50">
+            <input type="radio" name="method" value="vnpay" class="w-5 h-5 text-blue-600 focus:ring-blue-500" />
             <div class="flex-1">
-              <span class="font-semibold">Chuyển khoản ngân hàng</span>
-              <p class="text-sm text-gray-500">
-                Thông tin: <br />Ngân hàng ACB - STK: 123456789 - Chủ TK: NGUYEN
-                VAN A
-              </p>
+              <span class="font-semibold text-blue-700">VNPAY</span>
+              <p class="text-sm text-gray-500">Thanh toán qua cổng VNPAY.</p>
             </div>
-          </div>
+            <img src="images/logo_vnpay.png" alt="Logo VNPAY" class="w-20 h-20 rounded shadow" />
+          </label>
+
 
           <!-- Confirm -->
           <button id="confirmOnlinePay" class="confirm-btn">
