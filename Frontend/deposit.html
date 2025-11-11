@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nạp tiền vào ví</title>
+  
+  <link
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap"
+    rel="stylesheet"
+  />
+  <link
+    href="https://fonts.googleapis.com/icon?family=Material+Icons"
+    rel="stylesheet"
+  />
+  
+  <link rel="stylesheet" href="css/deposit.css" />
+</head>
+<body>
+  <div class="deposit-container">
+    <h1>
+      <span class="material-icons">add_card</span>
+      Nạp tiền vào ví EV
+    </h1>
+
+    <form id="depositForm" class="deposit-form">
+      <label for="amount">Số tiền (VNĐ):</label>
+      <input
+        type="number"
+        id="amount"
+        min="1000"
+        placeholder="Nhập số tiền muốn nạp..."
+        required
+        class="input-field" 
+      />
+
+      <label for="method">Phương thức thanh toán:</label>
+      <select id="method" required class="input-field">
+        <option value="">-- Chọn phương thức --</option>
+        <option value="momo">MoMo</option>
+        <option value="vnpay">VNPay</option>
+      </select>
+
+      <button type="submit" id="submitBtn">
+        <span class="material-icons">payment</span>
+        Xác nhận nạp tiền
+      </button>
+    </form>
+
+    <p id="message" class="message"></p>
+
+    <button
+      class="btn-secondary" 
+      onclick="window.location.href='wallet.html'"
+    >
+      <span class="material-icons">arrow_back</span>
+      Quay lại ví
+    </button>
+  </div>
+
+  <script src="js/deposit.js"></script>
+</body>
+</html>
