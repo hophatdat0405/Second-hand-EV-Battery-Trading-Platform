@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ví của tôi</title>
+  <link
+    href="https://fonts.googleapis.com/icon?family=Material+Icons"
+    rel="stylesheet"
+  />
+  <link rel="stylesheet" href="css/wallet.css" />
+</head>
+<body>
+  <div class="wallet-container">
+    <h1>
+      <span class="material-icons">account_balance_wallet</span> Ví EV
+    </h1>
+
+    <div class="wallet-balance">
+      <h2>Số dư hiện tại</h2>
+      <p id="balance">Đang tải...</p>
+
+      <div class="wallet-actions">
+        <button id="depositBtn">
+          <span class="material-icons">add_card</span> Nạp tiền
+        </button>
+        <button id="refreshBtn" class="btn-secondary">
+          <span class="material-icons">refresh</span> Làm mới
+        </button>
+      </div>
+    </div>
+
+    <div class="wallet-history">
+      <h2>Lịch sử giao dịch</h2>
+      <table id="txTable">
+        <thead>
+          <tr>
+            <th>Thời gian</th>
+            <th>Loại</th>
+            <th>Số tiền (VNĐ)</th>
+            <th>Mô tả</th>
+          </tr>
+        </thead>
+        <tbody id="txBody">
+          <tr>
+            <td colspan="4" class="loading">Đang tải dữ liệu...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script src="js/wallet.js"></script>
+</body>
+</html>
