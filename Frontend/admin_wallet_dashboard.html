@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bảng điều khiển ví sàn</title>
+  <link rel="icon" href="img/logo.png" />
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap"
+    rel="stylesheet"
+  />
+  <link
+    href="https://fonts.googleapis.com/icon?family=Material+Icons"
+    rel="stylesheet"
+  />
+
+  <link rel="stylesheet" href="css/wallet_admin.css" />
+</head>
+<body>
+  <main class="dashboard-container">
+    <section class="dashboard-card balance-card">
+      <h2 class="card-title">
+        <span class="material-icons">account_balance_wallet</span>
+        Tổng số dư ví sàn
+      </h2>
+      <div id="platformBalance" class="balance-amount">0 đ</div>
+    </section>
+
+    <section class="dashboard-card table-card">
+      <h2 class="card-title">
+        <span class="material-icons">business</span>
+        Lịch sử giao dịch ví sàn
+      </h2>
+
+      <div class="wallet-history-table">
+        <table>
+          <thead>
+            <tr>
+              <th>Thời gian</th>
+              <th>Loại GD</th>
+              <th>Số tiền</th>
+              <th>Mô tả</th>
+            </tr>
+          </thead>
+          <tbody id="platformTxTable">
+            <tr><td colspan="4" class="loading">Đang tải...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="dashboard-card table-card">
+      <h2 class="card-title">
+        <span class="material-icons">group</span>
+        Lịch sử giao dịch tất cả ví người dùng
+      </h2>
+
+      <div class="wallet-history-table">
+        <table>
+          <thead>
+            <tr>
+              <th>User ID</th>
+              <th>Thời gian</th>
+              <th>Loại GD</th>
+              <th>Số tiền</th>
+              <th>Mô tả</th>
+            </tr>
+          </thead>
+          <tbody id="userTxTable">
+            <tr><td colspan="5" class="loading">Đang tải...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script src="js/admin_wallet_dashboard.js"></script>
+</body>
+</html>
