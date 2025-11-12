@@ -1,13 +1,11 @@
 package local.contract.mq;
 
-import java.util.Map;
-
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import local.contract.model.ContractRequest;
+import local.contract.model.PaymentSuccessEvent;
 import local.contract.service.ContractService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,27 +16,41 @@ import lombok.extern.slf4j.Slf4j;
 public class OrderPaidListener {
 
     private final ContractService contractService;
-    private final ObjectMapper objectMapper = new ObjectMapper();
 
-    @RabbitListener(queues = "${mq.queue.order-paid}")
-    public void handleOrderPaidEvent(String messageJson) {
+    /**
+     * 🧾 Lắng nghe sự kiện "order.paid.queue"
+     * - Event này được publish từ transaction-service (routingKey = "order.paid")
+     * - Được định tuyến qua TopicExchange "ev.exchange"
+     */
+    @RabbitListener(queues = "${mq.queue.order-paid:contract.order.paid.queue}")
+    public void handleOrderPaidEvent(@Payload PaymentSuccessEvent event) {
         try {
-            log.info("📥 [MQ] Nhận JSON message: {}", messageJson);
-            ObjectMapper mapper = new ObjectMapper();
-            Map<String, Object> message = mapper.readValue(messageJson, Map.class);
+            log.info("📥 [MQ] Nhận PaymentSuccessEvent: {}", event);
 
-            String transactionId = (String) message.get("transactionId");
-            String method = (String) message.get("method");
+            // 🧩 Kiểm tra dữ liệu hợp lệ
+            if (event == null || event.getTransactionId() == null) {
+                log.warn("⚠️ [Contract] Nhận event null hoặc thiếu transactionId → bỏ qua");
+                return;
+            }
 
+            // 🔹 Chỉ xử lý nếu type là "order"
+            if (event.getType() != null && !event.getType().equalsIgnoreCase("order")) {
+                log.info("⏭️ [Contract] Bỏ qua event type={} (không phải đơn hàng)", event.getType());
+                return;
+            }
+
+            // ✅ Tạo ContractRequest từ event nhận được
             ContractRequest req = new ContractRequest();
-            req.setTransactionId(transactionId);
-            req.setMethod(method);
+            req.setTransactionId(event.getTransactionId());
+            req.setMethod(event.getMethod());
+            req.setUserId(event.getUserId());
+            req.setSellerId(event.getSellerId());
 
             contractService.createContract(req);
-            log.info("✅ [Contract] Đã tạo hợp đồng tự động cho transactionId={}", transactionId);
+            log.info("✅ [Contract] Đã tạo hợp đồng cho transactionId={}", event.getTransactionId());
 
         } catch (Exception e) {
-            log.error("❌ [MQ] Lỗi khi xử lý message: {}", e.getMessage(), e);
+            log.error("❌ [Contract] Lỗi khi xử lý PaymentSuccessEvent: {}", e.getMessage(), e);
         }
     }
 }
