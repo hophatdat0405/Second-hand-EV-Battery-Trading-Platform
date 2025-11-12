@@ -1,12 +1,14 @@
 package local.contract.model;
 
+import java.math.BigDecimal;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * DTO phản hồi sau khi ký hợp đồng thành công hoặc thất bại.
+ * DTO phản hồi cho hợp đồng — dùng được cả khi ký thành công hoặc khi xem lịch sử hợp đồng.
  */
 @Data
 @NoArgsConstructor
@@ -14,15 +16,26 @@ import lombok.NoArgsConstructor;
 @Builder
 public class ContractResponse {
 
-    // 🟢 Thông điệp phản hồi cho người dùng
-    private String message;
+    // 🆔 ID hợp đồng (để frontend hiển thị danh sách)
+    private Long id;
 
-    // 📄 Link tới file hợp đồng PDF (được sinh tự động)
-    private String pdfUrl;
-
-    // 🔁 Mã giao dịch liên kết (transactionId)
+    // 🔁 Mã giao dịch liên kết
     private String transactionId;
 
-    // 🕒 Thời gian tạo hoặc ký hợp đồng (nếu muốn hiển thị thêm)
+    // 👤 Thông tin khách hàng (có thể rút gọn hoặc bỏ nếu không cần)
+    private Long userId;
+    private String customerName;
+
+    // 📦 Thông tin sản phẩm
+    private String productName;
+    private BigDecimal totalPrice;
+
+    // 📄 Link tới file hợp đồng PDF
+    private String pdfUrl;
+
+    // 🕒 Thời gian ký hợp đồng
     private String signedAt;
+
+    // 💬 Thông điệp phản hồi (chỉ dùng khi ký xong)
+    private String message;
 }
