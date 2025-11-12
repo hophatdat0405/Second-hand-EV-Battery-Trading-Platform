@@ -2,58 +2,71 @@ package local.contract.config;
 
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
-import org.springframework.amqp.core.DirectExchange;
 import org.springframework.amqp.core.Queue;
+import org.springframework.amqp.core.QueueBuilder;
+import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
+import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * ✅ RabbitMQConfig cho contract-service
+ * - Lắng nghe sự kiện "order.paid" từ transaction-service
+ * - Dùng TopicExchange "ev.exchange" để đồng bộ với các service khác (wallet, user, transaction)
+ */
 @Configuration
 public class RabbitMQConfig {
 
-    @Value("${mq.exchange:ev.exchange}") 
+    // ======================= PROPERTIES =======================
+    @Value("${mq.exchange:ev.exchange}")
     private String exchangeName;
 
-    @Value("${mq.queue.order-paid:order.paid.queue}")
+    @Value("${mq.queue.order-paid:contract.order.paid.queue}")
     private String orderPaidQueueName;
 
     @Value("${mq.routing.order-paid:order.paid}")
     private String orderPaidRoutingKey;
 
-    // ✅ Dùng DirectExchange (trùng với transaction-service)
+    // ======================= EXCHANGE =======================
     @Bean
-    public DirectExchange exchange() {
-        return new DirectExchange(exchangeName, true, false);
+    public TopicExchange exchange() {
+        // ⚙️ Dùng TopicExchange thay vì DirectExchange để đồng bộ hệ thống
+        return new TopicExchange(exchangeName, true, false);
     }
 
-    // ✅ Khai báo Queue
+    // ======================= QUEUE =======================
     @Bean
     public Queue orderPaidQueue() {
-        return new Queue(orderPaidQueueName, true);
+        // 🧾 Queue nhận event khi đơn hàng thanh toán thành công
+        return QueueBuilder.durable(orderPaidQueueName).build();
     }
 
-    // ✅ Binding queue với exchange theo routing key
+    // ======================= BINDING =======================
     @Bean
-    public Binding bindingOrderPaid(Queue orderPaidQueue, DirectExchange exchange) {
-        return BindingBuilder
-                .bind(orderPaidQueue)
+    public Binding bindingOrderPaid(Queue orderPaidQueue, TopicExchange exchange) {
+        // 🪢 Gắn queue vào exchange với routing key "order.paid"
+        return BindingBuilder.bind(orderPaidQueue)
                 .to(exchange)
                 .with(orderPaidRoutingKey);
     }
 
-    // ✅ Dùng JSON converter để tránh lỗi CollSer
+    // ======================= JSON CONVERTER =======================
     @Bean
-    public Jackson2JsonMessageConverter messageConverter() {
-        return new Jackson2JsonMessageConverter();
+    public MessageConverter jsonMessageConverter() {
+        Jackson2JsonMessageConverter converter = new Jackson2JsonMessageConverter();
+        converter.setCreateMessageIds(true); // giúp debug dễ hơn
+        return converter;
     }
 
+    // ======================= RABBIT TEMPLATE =======================
     @Bean
-    public RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory) {
-        RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
-        rabbitTemplate.setMessageConverter(messageConverter());
-        return rabbitTemplate;
+    public RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory, MessageConverter jsonMessageConverter) {
+        RabbitTemplate template = new RabbitTemplate(connectionFactory);
+        template.setMessageConverter(jsonMessageConverter);
+        return template;
     }
 }
