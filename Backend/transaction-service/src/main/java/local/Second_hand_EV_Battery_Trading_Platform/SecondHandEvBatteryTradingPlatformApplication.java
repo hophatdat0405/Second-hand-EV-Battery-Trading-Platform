@@ -14,7 +14,7 @@ public class SecondHandEvBatteryTradingPlatformApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(SecondHandEvBatteryTradingPlatformApplication.class, args);
-        System.out.println("🚀 Server is running at: http://localhost:8080");
+        System.out.println("🚀 Server is running at: http://localhost:8083");
         System.out.println("✅ Connected successfully to MySQL: ev_trading_payment");
     }
 }
