@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 public interface ProductServiceClient {
 
     // gọi API ProductDetailController: /api/product-details/{productId}
+    // Feign sẽ tự động map JSON response -> ProductDetailDTO
     @GetMapping("/api/product-details/{productId}")
     ProductDetailDTO getProductDetail(@PathVariable("productId") Long productId);
 

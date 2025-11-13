@@ -31,6 +31,8 @@ public class Cart {
     private String brand;
     private String conditionName;
     private Long mileage;
-
-
+    //ID của người bán sản phẩm này
+    private Long sellerId; 
+    // ID của người dùng sở hữu giỏ hàng này (người mua)
+    private Long userId; 
 }
