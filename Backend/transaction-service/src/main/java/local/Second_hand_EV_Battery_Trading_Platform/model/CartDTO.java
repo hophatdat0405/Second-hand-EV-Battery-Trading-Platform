@@ -20,4 +20,5 @@ public class CartDTO {
     private String productName;   // Tên sản phẩm
     private Double price;         // Giá sản phẩm
     private Double totalAmount;   // Tổng tiền giỏ hàng (nếu có nhiều item)
+    private Long sellerId;
 }

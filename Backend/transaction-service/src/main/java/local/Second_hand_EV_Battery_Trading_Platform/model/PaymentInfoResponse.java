@@ -25,4 +25,9 @@ public class PaymentInfoResponse {
     private String productName;
     private double price;
     private double totalAmount;
+
+    // 🆕 Bổ sung thêm các trường cần thiết
+    private String type;      // "order" hoặc "deposit"
+    private Long userId;      // id người nạp
+    private Long sellerId;    // id người bán (nếu có)
 }
