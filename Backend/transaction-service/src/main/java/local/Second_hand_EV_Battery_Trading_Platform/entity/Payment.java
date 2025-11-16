@@ -1,26 +1,23 @@
 package local.Second_hand_EV_Battery_Trading_Platform.entity;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.List; // ✅ Bổ sung dòng này
+import java.util.List;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.ElementCollection;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import jakarta.persistence.*;
+import lombok.*;
 
+/**
+ * Entity lưu thông tin thanh toán của người dùng
+ * - Dùng cho cả order và nạp tiền ví
+ * - Hỗ trợ các phương thức: VNPay, MoMo, EVWallet
+ */
 @Entity
 @Table(name = "payments")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder // ✅ Bổ sung để dùng Payment.builder()
 public class Payment {
 
     @Id
@@ -32,12 +29,34 @@ public class Payment {
     @JoinColumn(name = "customer_id")
     private Customer customer;
 
-    @Column(name = "transaction_id", length = 100)
+    // Mã giao dịch (UUID)
+    @Column(name = "transaction_id", length = 100, unique = true)
     private String transactionId;
 
-    private String method; // vnpay / momo
-    private Double amount;
-    private String status; // PENDING / SUCCESS / FAILED
+    // Phương thức thanh toán: VNPAY / MOMO / EVWALLET
+    @Column(length = 50)
+    private String method;
+
+    // Số tiền thanh toán
+    private BigDecimal amount;
+
+    // Tổng tiền (sau khi cộng thêm phí / chiết khấu)
+    @Column(name = "total_amount")
+    private BigDecimal totalAmount;
+
+    // Trạng thái: PENDING / SUCCESS / FAILED
+    @Column(length = 30)
+    private String status;
+
+    // Danh sách mã giỏ hàng liên quan (dành cho order)
+    @ElementCollection
+    @CollectionTable(name = "payment_cart_ids", joinColumns = @JoinColumn(name = "payment_id"))
+    @Column(name = "cart_id")
+    private List<Long> cartIdList;
+
+    // Danh sách sản phẩm dạng text
+    @Column(length = 1000)
+    private String productNames;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
@@ -45,17 +64,6 @@ public class Payment {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt = LocalDateTime.now();
 
-    @Column(name = "cart_id")
-    private Long cartId;
-
-    @ElementCollection
-    @Column(name = "cart_id_list")
-    private List<Long> cartIdList; // ✅ OK sau khi import java.util.List
-
-    @Column(length = 1000)
-    private String productNames;
-
-    @Column
-    private Double totalAmount;
-
+    @Column(name = "user_id")
+    private Long userId;
 }
