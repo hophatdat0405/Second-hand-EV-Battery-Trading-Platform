@@ -15,23 +15,25 @@ public class CorsConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
 
-        // 💡 Cho phép cả frontend (5501) và 2 microservice (8080, 8081)
+        // ✅ Cho phép tất cả localhost & 127.0.0.1 (mọi port)
         config.setAllowedOriginPatterns(List.of(
-                "http://localhost:5500",
-                "http://127.0.0.1:5500",
-                "http://localhost:5501",
-                "http://127.0.0.1:5501",
-                "http://localhost:8080",
-                "http://127.0.0.1:8080",
-                "http://localhost:8081",
-                "http://127.0.0.1:8081"
+                "http://localhost:*",
+                "http://127.0.0.1:*"
         ));
 
+        // ✅ Các phương thức được phép
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(List.of("*"));
-        config.setAllowCredentials(true); // Cho phép cookie/token
-        config.setMaxAge(3600L); // Cache preflight 1h
 
+        // ✅ Cho phép mọi header (Content-Type, Authorization, v.v.)
+        config.setAllowedHeaders(List.of("*"));
+
+        // ✅ Cho phép cookie hoặc token (nếu có)
+        config.setAllowCredentials(true);
+
+        // ✅ Giảm preflight request bằng cách cache trong 1 giờ
+        config.setMaxAge(3600L);
+
+        // ✅ Đăng ký áp dụng cho toàn bộ route
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         return source;
