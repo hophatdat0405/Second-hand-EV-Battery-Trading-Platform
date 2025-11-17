@@ -30,4 +30,7 @@ public class Like {
     private String brand;
     private String conditionName;
     private Long mileage;
+    
+     private Long userId;   // người dùng  đã like
+    private Long sellerId; // người bán sản phẩm
 }
