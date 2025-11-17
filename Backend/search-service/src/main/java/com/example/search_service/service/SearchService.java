@@ -13,6 +13,13 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page; 
+import org.springframework.data.domain.PageImpl; 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.stereotype.Service;
 
 @Service
 public class SearchService {
@@ -75,7 +82,8 @@ public class SearchService {
 
         return null;
     }
-
+    @Cacheable(value = "searchResults", 
+        key = "#root.methodName + ':' + ( #type == null ? '' : #type ) + ':' + ( #q == null ? '' : #q ) + ':' + ( #location == null ? '' : #location ) + ':' + ( #brand == null ? '' : #brand ) + ':' + ( #batteryType == null ? '' : #batteryType ) + ':' + ( #yearOfManufacture == null ? '' : #yearOfManufacture ) + ':' + ( #priceMin == null ? '' : #priceMin ) + ':' + ( #priceMax == null ? '' : #priceMax ) + ':' + ( #batteryCapacity == null ? '' : #batteryCapacity ) + ':' + ( #mileageRange == null ? '' : #mileageRange ) + ':' + ( #conditionName == null ? '' : #conditionName )")
     public List<SearchResultDTO> search(
             String type,
             String q,
@@ -91,42 +99,36 @@ public class SearchService {
     ) {
         // map type -> canonical
         final String canonicalType = mapRequestedTypeToCanonical(type);
-
-        // 1) Try to call listing-service with canonicalType so listing-service can filter server-side
+        
         List<ProductListingDTO> listings = Collections.emptyList();
-        boolean usedServerSideTypeFilter = false;
+        
+        // --- SỬA LOGIC GỌI API LISTING SERVICE (DÙNG CustomPageImpl) ---
         try {
-            if (canonicalType != null) {
-                // try server-side filtered call
-                listings = listingClient.getAllListings(canonicalType, "date", 500);
-                if (listings == null) listings = Collections.emptyList();
-                usedServerSideTypeFilter = true;
-            } else {
-                // no canonical type -> fetch all
-                listings = listingClient.getAllListings(null, "date", 500);
-                if (listings == null) listings = Collections.emptyList();
-            }
+            // 1. Gửi type/sortBy/page/size
+            
+            // Lấy 500 bản ghi đầu tiên, sắp xếp theo listingDate
+            CustomPageImpl<ProductListingDTO> pageResult = (CustomPageImpl<ProductListingDTO>) listingClient.getFilteredListings(
+                canonicalType, "listingDate", 0, 500 
+            );
+            
+            listings = pageResult.getContent();
+            log.info("Lấy {} listings từ Listing Service (Tổng: {}).", listings.size(), pageResult.getTotalElements());
+            
         } catch (Exception ex) {
-            log.warn("listingClient.getAllListings(...) failed with canonicalType={}, will fallback to permissive call. Error: {}",
-                    canonicalType, ex.toString());
-            // fallback: try calling parameterless method if available
-            try {
-                // if your ListingClient still has single method without params, uncomment the next line:
-                // listings = listingClient.getAllListings();
-                // Otherwise leave listings empty
-                listings = Collections.emptyList();
-            } catch (Exception ex2) {
-                log.error("Fallback listing fetch failed: {}", ex2.toString());
-                listings = Collections.emptyList();
-            }
+            log.error("LỖI KHÔNG THỂ GỌI HOẶC DESERIALIZE LISTING SERVICE. Đảm bảo Listing Service chạy và CustomPageImpl đã được đặt đúng package.", ex);
+            listings = Collections.emptyList();
+        }
+        // ----------------------------------------
+        
+        if (listings.isEmpty()) {
+             return Collections.emptyList();
         }
 
-        // 2) Build predicates for other filters.
+        // 2) Build predicates for other filters. (LOGIC LỌC CLIENT-SIDE)
         List<Predicate<ProductListingDTO>> predicates = new ArrayList<>();
 
-        // If listing-service didn't apply type filter (canonicalType == null OR server call failed),
-        // then add type predicate on server-side (client-side) to keep behavior robust.
-        if (!usedServerSideTypeFilter && StringUtils.hasText(type) && !"all".equalsIgnoreCase(type)) {
+        // Logic lọc type (Áp dụng CLIENT-SIDE cho an toàn tuyệt đối)
+        if (StringUtils.hasText(type) && !"all".equalsIgnoreCase(type)) {
             final String requestedRaw = type.trim();
             final String mappedRequested = mapRequestedTypeToCanonical(requestedRaw);
             final String mappedRequestedSafe = mappedRequested != null ? mappedRequested : normalize(requestedRaw);
@@ -137,11 +139,9 @@ public class SearchService {
                 String ptRaw = p.getProductType();
                 String pt = normalize(ptRaw);
 
-                // map productType to canonical quickly
                 String ptCanon = mapRequestedTypeToCanonical(ptRaw);
                 if (ptCanon != null && ptCanon.equals(mappedRequestedSafe)) return true;
 
-                // contains checks on productType/name/brand
                 if (pt.contains(mappedRequestedSafe) || mappedRequestedSafe.contains(pt)) return true;
 
                 ProductSpecificationDTO s = p.getSpecification();
@@ -150,7 +150,6 @@ public class SearchService {
                 if (!specBrand.isEmpty() && (specBrand.contains(mappedRequestedSafe) || mappedRequestedSafe.contains(specBrand))) return true;
                 if (!name.isEmpty() && (name.contains(mappedRequestedSafe) || mappedRequestedSafe.contains(name))) return true;
 
-                // final keyword fallback
                 if ("car".equals(mappedRequestedSafe) && (pt.contains("car") || pt.contains("oto") || name.contains("vinfast"))) return true;
                 if ("motorbike".equals(mappedRequestedSafe) && (pt.contains("motor") || pt.contains("xemay") || name.contains("xemay"))) return true;
                 if ("bike".equals(mappedRequestedSafe) && (pt.contains("bike") || pt.contains("xedap") || name.contains("xedap"))) return true;
@@ -183,7 +182,7 @@ public class SearchService {
             String br = normalize(brand);
             predicates.add(pl -> {
                 ProductSpecificationDTO s = pl.getProduct() != null ? pl.getProduct().getSpecification() : null;
-                return s != null && normalize(s.getBrand()).contains(br);
+                return s != null && s.getBrand() != null && normalize(s.getBrand()).contains(br);
             });
         }
 
@@ -192,7 +191,7 @@ public class SearchService {
             String bt = normalize(batteryType);
             predicates.add(pl -> {
                 ProductSpecificationDTO s = pl.getProduct() != null ? pl.getProduct().getSpecification() : null;
-                return s != null && normalize(s.getBatteryType()).contains(bt);
+                return s != null && s.getBatteryType() != null && normalize(s.getBatteryType()).contains(bt);
             });
         }
 
@@ -223,11 +222,11 @@ public class SearchService {
             String bc = normalize(batteryCapacity);
             predicates.add(pl -> {
                 ProductSpecificationDTO s = pl.getProduct() != null ? pl.getProduct().getSpecification() : null;
-                return s != null && normalize(s.getBatteryCapacity()).contains(bc);
+                return s != null && s.getBatteryCapacity() != null && normalize(s.getBatteryCapacity()).contains(bc);
             });
         }
 
-        // conditionName -> contains + normalize (existing logic)
+        // conditionName (Logic phức tạp giữ nguyên)
         if (StringUtils.hasText(conditionName)) {
             String rawCond = conditionName.trim();
             String cnNormalized = normalize(rawCond);
@@ -262,7 +261,7 @@ public class SearchService {
                 String itemCondName = normalize(itemCondRaw);
 
                 if (isRange && finalMin != null && finalMax != null) {
-                    java.util.regex.Matcher m = java.util.regex.Pattern.compile("(\\d{1,3})\\s*%?").matcher(itemCondRaw);
+                    Matcher m = Pattern.compile("(\\d{1,3})\\s*%?").matcher(itemCondRaw);
                     if (m.find()) {
                         try {
                             int val = Integer.parseInt(m.group(1));
@@ -277,7 +276,7 @@ public class SearchService {
             });
         }
 
-        // mileage parsing (same as before)
+        // mileage parsing (Logic giữ nguyên)
         Long mileageMin = null, mileageMax = null;
         if (StringUtils.hasText(mileageRange)) {
             String mr = mileageRange.trim();
@@ -328,24 +327,13 @@ public class SearchService {
                 dto.setProductType(p.getProductType());
                 dto.setPrice(p.getPrice());
                 if (p.getImages() != null && !p.getImages().isEmpty()) {
-                    String base = (listingServiceBaseUrl != null) ? listingServiceBaseUrl.replaceAll("/$", "") : "";
                     List<String> urls = p.getImages().stream()
-                            .map(ProductImageDTO::getImageUrl)
+                            .map(ProductImageDTO::getImageUrl) // Lấy URL gốc (vd: "/uploads/file.jpg")
                             .filter(Objects::nonNull)
-                            .map(u -> {
-                                String trimmed = u.trim();
-                                if (trimmed.isEmpty()) return null;
-                                if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) return trimmed;
-                                if (trimmed.startsWith("//")) return "http:" + trimmed;
-                                if (trimmed.startsWith("/")) {
-                                    if (!base.isEmpty()) return base + trimmed;
-                                    return trimmed;
-                                }
-                                if (!base.isEmpty()) return base + "/" + trimmed;
-                                return trimmed;
-                            })
-                            .filter(Objects::nonNull)
+                            .map(String::trim)
+                            .filter(str -> !str.isEmpty())
                             .collect(Collectors.toList());
+                    
                     if (!urls.isEmpty()) dto.setImageUrls(urls);
                 }
             }
