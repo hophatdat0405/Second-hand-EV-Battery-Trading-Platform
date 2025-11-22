@@ -11,7 +11,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
@@ -35,7 +34,7 @@ public class ContractServiceImpl implements ContractService {
 
     private final ContractRepository contractRepo;
 
-    @Value("${transaction.service.url:http://localhost:8083}")
+    @Value("${transaction.service.url:http://transaction-service:8083}")
     private String transactionServiceBaseUrl;
 
     // ============================================================
@@ -157,14 +156,18 @@ public class ContractServiceImpl implements ContractService {
             if (request.getPdfBase64() != null && !request.getPdfBase64().isBlank()) {
                 try {
                     String fileName = "contract_" + UUID.randomUUID() + ".pdf";
-                    Path dir = Paths.get("src/main/resources/static/contracts");
+                    Path dir = Paths.get("/app/contracts");
+
                     if (!Files.exists(dir)) Files.createDirectories(dir);
 
                     Path filePath = dir.resolve(fileName);
                     byte[] pdfBytes = Base64.getDecoder().decode(request.getPdfBase64());
                     Files.write(filePath, pdfBytes);
 
-                    ct.setPdfUrl("http://localhost:8081/contracts/" + fileName);
+                    ct.setPdfUrl("http://localhost:9000/contracts/" + fileName);
+
+                    
+
                     log.info("📄 Đã lưu file PDF hợp đồng tại {}", filePath.toAbsolutePath());
                 } catch (IOException ex) {
                     log.error("❌ Lỗi khi ghi file PDF: {}", ex.getMessage());

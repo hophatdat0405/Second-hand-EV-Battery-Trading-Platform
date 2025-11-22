@@ -30,6 +30,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/contracts/sign").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/contracts/create").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/contracts/user/**").permitAll()
+                .requestMatchers("/contracts/**").permitAll()
                 // Các API khác (nếu có) cũng được phép truy cập
                 .anyRequest().permitAll()
             )
