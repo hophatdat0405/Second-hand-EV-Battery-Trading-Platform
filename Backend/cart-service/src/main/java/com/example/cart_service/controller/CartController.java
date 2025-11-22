@@ -143,14 +143,13 @@ public class CartController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Product not found");
         }
 
-        String img = "/images/product.jpg";
+        String img = "/images/product.jpg"; // fallback
         if (pd.getImageUrls() != null && !pd.getImageUrls().isEmpty()) {
             String first = pd.getImageUrls().get(0);
-            if (first.startsWith("http://") || first.startsWith("https://")) {
-                img = first;
-            } else {
-                String prefix = productServiceUrl.endsWith("/") ? productServiceUrl.substring(0, productServiceUrl.length()-1) : productServiceUrl;
-                img = prefix + (first.startsWith("/") ? first : ("/" + first));
+            if (first != null && !first.trim().isEmpty()) {
+                // Chỉ lưu đường dẫn tương đối (vd: "/uploads/file.jpg")
+                // Hoặc URL tuyệt đối nếu nó đã là (vd: http://.../file.jpg)
+                img = first.trim();
             }
         }
 
