@@ -54,11 +54,11 @@ public class PaymentServiceImpl implements PaymentService {
     // ===== VNPay Config =====
     @Value("${vnpay.url:https://sandbox.vnpayment.vn/paymentv2/vpcpay.html}")
     private String vnp_Url;
-    @Value("${vnpay.returnUrl:http://localhost:8083/api/payments/callback}")
+    @Value("${vnpay.returnUrl:http://localhost:9000/api/payments/callback}")
     private String vnp_ReturnUrl;
-    @Value("${vnpay.tmnCode:YOUR_TMN_CODE}")
+    @Value("${vnpay.tmnCode:3DWSNIT9}")
     private String vnp_TmnCode;
-    @Value("${vnpay.hashSecret:YOUR_SECRET_KEY}")
+    @Value("${vnpay.hashSecret:99W5Z4HEK24U9ONIE4BYMU6GWT6TBS7B}")
     private String vnp_HashSecret;
     // ===== MoMo Config =====
     @Value("${momo.endpoint:https://test-payment.momo.vn/v2/gateway/api/create}")
@@ -70,16 +70,16 @@ public class PaymentServiceImpl implements PaymentService {
     @Value("${momo.secretKey:eSAqVmVyvDwzcj2uZxkwRjAdz3nrtNpo}")
     private String momoSecretKey;
     // Redirect URLs
-    @Value("${momo.returnUrl.deposit:http://localhost:5501/deposit_success.html}")
+    @Value("${momo.returnUrl.deposit:http://localhost:9000/deposit_success.html}")
     private String momoReturnUrlDeposit;
-    @Value("${momo.returnUrl.order:http://localhost:5501/payment_success.html}")
+    @Value("${momo.returnUrl.order:http://localhost:9000/payment_success.html}")
     private String momoReturnUrlOrder;
-    @Value("${momo.notifyUrl:http://localhost:8083/api/payments/callback}")
+    @Value("${momo.notifyUrl:http://localhost:9000/api/payments/callback}")
     private String momoNotifyUrl;
     @Value("${momo.requestType:captureWallet}")
     private String momoRequestType;
     // Wallet service URL
-    @Value("${wallet.api.url:http://localhost:8089/api/wallet/pay}")
+    @Value("${wallet.api.url:http://localhost:9000/api/wallet/pay}")
     private String walletApiUrl;
 
 
@@ -456,7 +456,7 @@ public class PaymentServiceImpl implements PaymentService {
             long amount = payment.getAmount() != null ? payment.getAmount().longValue() : 0L;
             String extraData = Base64.getEncoder().encodeToString("SecondHandEV".getBytes(StandardCharsets.UTF_8));
             String orderInfo = payment.getProductNames();
-            String redirectUrl = "http://localhost:8083/api/payments/callback"; // redirect MoMo về backend
+            String redirectUrl = "http://localhost:9000/api/payments/callback"; // redirect MoMo về backend
             JSONObject body = new JSONObject();
             body.put("partnerCode", momoPartnerCode);
             body.put("accessKey", momoAccessKey);
@@ -703,7 +703,7 @@ public class PaymentServiceImpl implements PaymentService {
     private boolean hasEnoughBalance(Long userId, BigDecimal amount) {
         try {
             // Gọi API kiểm tra số dư (ví dụ: GET /api/wallet/balance/{userId})
-            String url = "http://localhost:8089/api/wallet/balance/" + userId;
+            String url = "http://wallet-service:8089/api/wallet/balance/" + userId;
             HttpClient client = HttpClient.newHttpClient();
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
