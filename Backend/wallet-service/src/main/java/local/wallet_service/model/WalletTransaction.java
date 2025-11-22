@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import jakarta.persistence.*;
 import lombok.*;
 import local.wallet_service.model.enums.*;
+import java.time.ZoneId;
 
 @Entity
 @Table(name = "wallet_transaction")
@@ -39,7 +40,7 @@ public class WalletTransaction {
     @PrePersist
     public void prePersist() {
         if (createdAt == null) {
-            createdAt = LocalDateTime.now();
+            createdAt = LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
         }
     }
 }

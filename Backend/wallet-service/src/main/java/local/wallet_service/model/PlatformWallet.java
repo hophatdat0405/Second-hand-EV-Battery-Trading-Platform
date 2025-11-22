@@ -1,8 +1,8 @@
 package local.wallet_service.model;
 
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -14,16 +14,24 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 public class PlatformWallet {
+
     @Id
     private Long id;
 
     @Column(precision = 18, scale = 2, nullable = false)
+    @Builder.Default
     private BigDecimal balance = BigDecimal.ZERO;
 
-    private LocalDateTime updatedAt = LocalDateTime.now();
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
+    @PrePersist
+    public void onCreate() {
+        this.updatedAt = LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
+    }
 
     @PreUpdate
     public void onUpdate() {
-        this.updatedAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
     }
 }

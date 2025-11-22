@@ -35,7 +35,7 @@ public class PayrollService {
     @Value("${wallet.platform.id:1}")
     private Long platformWalletId;
 
-    @Value("${user.service.url:http://localhost:8084}") // ⚙️ user-service chạy port 8084
+    @Value("${user.service.url:http://user-service:8084}") // ⚙️ user-service chạy port 8084
     private String userServiceUrl;
 
     // ============================================

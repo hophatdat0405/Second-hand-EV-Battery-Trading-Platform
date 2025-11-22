@@ -95,8 +95,7 @@ public class WalletService {
                 .txType(TxType.CREDIT)
                 .amount(commission)
                 .description("Commission 10% from order #" + txId + " [COMMISSION] seller#" + sellerId)
-                .createdAt(LocalDateTime.now())
-                .build());
+                                .build());
 
         // --- Cập nhật ví người bán ---
         UserWallet sellerWallet = userWalletRepo.findByUserId(sellerId)
@@ -116,8 +115,7 @@ public class WalletService {
                 .txType(TxType.CREDIT)
                 .amount(sellerIncome)
                 .description("Seller income (90%) from order #" + txId + " [COMMISSION] seller#" + sellerId)
-                .createdAt(LocalDateTime.now())
-                .build());
+                                .build());
 
         // --- Ghi record hoa hồng ---
         commissionRepo.save(CommissionRecord.builder()
@@ -165,8 +163,7 @@ public class WalletService {
                 .txType(TxType.CREDIT)
                 .amount(amount)
                 .description("Deposit via " + method + " (txId=" + transactionId + ")")
-                .createdAt(LocalDateTime.now())
-                .build());
+                                .build());
 
         log.info("💵 [Deposit] +{} to user #{} via {} (txId={})", amount, userId, method, transactionId);
         return "✅ Deposit " + amount + " added successfully to user wallet";
@@ -233,8 +230,7 @@ public class WalletService {
                 .txType(TxType.DEBIT)
                 .amount(req.getAmount())
                 .description("Thanh toán tổng đơn hàng (txId=" + txId + ") [TOTAL]")
-                .createdAt(LocalDateTime.now())
-                .build());
+                                .build());
 
         log.info("💳 [EV Wallet] -{} from user #{} (txId={})", req.getAmount(), req.getUserId(), txId);
 
@@ -275,8 +271,7 @@ public class WalletService {
                 .description("Seller received " + amount + " via " + method +
                         " (buyerId=" + buyerId + ", txId=" + transactionId +
                         ") [SELLER#" + sellerId + "]")
-                .createdAt(LocalDateTime.now())
-                .build());
+                                .build());
 
         log.info("💸 [TransferToSeller] +{}đ to seller #{} (method={}, buyerId={}, txId={})",
                 amount, sellerId, method, buyerId, transactionId);
@@ -311,8 +306,7 @@ public class WalletService {
                 .txType(TxType.CREDIT)
                 .amount(amount)
                 .description(description)
-                .createdAt(LocalDateTime.now())
-                .build());
+                                .build());
 
         log.info("🏦 [PlatformWallet] +{} vào ví sàn (desc='{}')", amount, description);
     }
@@ -341,8 +335,7 @@ public class WalletService {
                 .txType(TxType.CREDIT)
                 .amount(amount)
                 .description(description)
-                .createdAt(LocalDateTime.now())
-                .build());
+                                .build());
 
         log.info("💼 [UserWallet] +{} vào ví người dùng #{} (desc='{}')", amount, userId, description);
     }
