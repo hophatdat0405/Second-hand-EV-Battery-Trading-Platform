@@ -60,7 +60,7 @@ public class PaymentController {
             return ResponseEntity.ok(Map.of(
                     "transactionId", response.getTransactionId(),
                     "status", "SUCCESS",
-                    "redirectUrl", "http://localhost:5501/payment_success.html?transactionId=" + response.getTransactionId()
+                    "redirectUrl", "http://localhost:9000/payment_success.html?transactionId=" + response.getTransactionId()
             ));
         }
 
@@ -152,12 +152,12 @@ public class PaymentController {
             if (isDeposit) {
                 // NẠP TIỀN (DEPOSIT): thành công -> deposit_success, thất bại/hủy -> payment_fail
                 redirectUrl = isSuccess
-                        ? "http://localhost:5501/deposit_success.html"
-                        : "http://localhost:5501/payment_fail.html";
+                        ? "http://localhost:9000/deposit_success.html"
+                        : "http://localhost:9000/payment_fail.html";
             } else {
                 // ORDER / EVWALLET: luôn về payment_success.html
                 // để trang hiển thị SUCCESS/FAILED/CANCELED theo finalStatus
-                redirectUrl = "http://localhost:5501/payment_success.html";
+                redirectUrl = "http://localhost:9000/payment_success.html";
             }
 
             // --- Redirect kèm query ---
@@ -181,7 +181,7 @@ public class PaymentController {
 
     private ResponseEntity<?> redirectFail(String error) {
         HttpHeaders headers = new HttpHeaders();
-        headers.add("Location", "http://localhost:5501/payment_fail.html?error=" +
+        headers.add("Location", "http://localhost:9000/payment_fail.html?error=" +
                 URLEncoder.encode(error, StandardCharsets.UTF_8));
         return ResponseEntity.status(302).headers(headers).build();
     }
