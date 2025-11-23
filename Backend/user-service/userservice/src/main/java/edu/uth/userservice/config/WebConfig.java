@@ -9,12 +9,15 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/api/**")
-            .allowedOrigins("http://127.0.0.1:5501", "http://localhost:5501") // frontend chạy live server
+        registry.addMapping("/**") // Cho phép toàn bộ API (kể cả /api/**)
+            .allowedOriginPatterns(
+                "http://localhost:*", 
+                "http://127.0.0.1:*"
+            )
             .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
             .allowedHeaders("*")
             .exposedHeaders("Authorization")
             .allowCredentials(true)
-            .maxAge(3600);
+            .maxAge(3600); // 1 giờ cache preflight
     }
 }
