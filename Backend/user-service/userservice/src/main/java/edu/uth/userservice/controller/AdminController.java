@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/admin")
-@CrossOrigin(origins = {"http://127.0.0.1:5501","http://localhost:3000","http://localhost:5501"})
+//@CrossOrigin(origins = {"http://127.0.0.1:5501","http://localhost:3000","http://localhost:5501"})
 public class AdminController {
 
     @Autowired
@@ -39,7 +39,8 @@ public class AdminController {
         Integer callerId = getUserIdFromHeader(authHeader);
         if (callerId == null) return false;
         Set<String> roles = userService.getRoleNamesForUser(callerId);
-        return roles.stream().anyMatch(r -> "ADMIN".equalsIgnoreCase(r));
+        // ✅ Cập nhật: SUPER_ADMIN cũng là ADMIN
+        return roles.stream().anyMatch(r -> "ADMIN".equalsIgnoreCase(r) || "SUPER_ADMIN".equalsIgnoreCase(r));
     }
 
     /** GET /api/admin/users => trả danh sách user (basic) */
@@ -67,6 +68,13 @@ public class AdminController {
             @RequestHeader(value="Authorization", required=false) String authHeader,
             @PathVariable("id") Integer id) {
         if (!callerIsAdmin(authHeader)) return ResponseEntity.status(403).body("Forbidden");
+        // ===== 🛑 BẢO VỆ SUPERADMIN 🛑 =====
+        // Lấy vai trò của user mục tiêu (người bị khóa)
+        Set<String> targetRoles = userService.getRoleNamesForUser(id);
+        if (targetRoles.contains("SUPER_ADMIN")) {
+            return ResponseEntity.status(403).body("Không thể tác động đến tài khoản Super Admin.");
+        }
+        // ======================================
         try {
             User updated = userService.lockUser(id);
             Map<String,Object> resp = Map.of(
@@ -85,6 +93,12 @@ public class AdminController {
             @RequestHeader(value="Authorization", required=false) String authHeader,
             @PathVariable("id") Integer id) {
         if (!callerIsAdmin(authHeader)) return ResponseEntity.status(403).body("Forbidden");
+        // ===== 🛑 BẢO VỆ SUPERADMIN 🛑 (2) =====
+        Set<String> targetRoles = userService.getRoleNamesForUser(id);
+        if (targetRoles.contains("SUPER_ADMIN")) {
+            return ResponseEntity.status(403).body("Không thể tác động đến tài khoản Super Admin.");
+        }
+        // ======================================
         try {
             User updated = userService.unlockUser(id);
             Map<String,Object> resp = Map.of(
@@ -118,6 +132,12 @@ public class AdminController {
         if (req == null || req.getRole() == null || req.getRole().isBlank()) {
             return ResponseEntity.badRequest().body("role required");
         }
+        // ===== 🛑 BẢO VỆ SUPERADMIN 🛑 (3) =====
+        Set<String> targetRoles = userService.getRoleNamesForUser(id);
+        if (targetRoles.contains("SUPER_ADMIN")) {
+            return ResponseEntity.status(403).body("Không thể tác động đến tài khoản Super Admin.");
+        }
+        // ======================================
         try {
             User updated = userService.addRoleToUser(id, req.getRole().trim().toUpperCase());
             return ResponseEntity.ok(new UserDTO(updated));
@@ -133,6 +153,12 @@ public class AdminController {
             @PathVariable("id") Integer id,
             @RequestBody RolesUpdateRequest req) {
         if (!callerIsAdmin(authHeader)) return ResponseEntity.status(403).body("Forbidden");
+        // ===== 🛑 BẢO VỆ SUPERADMIN 🛑 (4) =====
+        Set<String> targetRoles = userService.getRoleNamesForUser(id);
+        if (targetRoles.contains("SUPER_ADMIN")) {
+            return ResponseEntity.status(403).body("Không thể tác động đến tài khoản Super Admin.");
+        }
+        // ======================================
         try {
             List<String> roles = req == null ? Collections.emptyList() : req.getRoles();
             User updated = userService.setRolesForUser(id, roles);
@@ -149,6 +175,16 @@ public class AdminController {
             @PathVariable("id") Integer id,
             @PathVariable("role") String role) {
         if (!callerIsAdmin(authHeader)) return ResponseEntity.status(403).body("Forbidden");
+        // ===== 🛑 BẢO VỆ SUPERADMIN 🛑 (5) =====
+        Set<String> targetRoles = userService.getRoleNamesForUser(id);
+        if (targetRoles.contains("SUPER_ADMIN")) {
+            // Đặc biệt: Cho phép Super Admin tự xóa vai trò của chính mình (nếu muốn)
+            // Nhưng vẫn cấm Admin khác xóa vai trò của Super Admin
+            Integer callerId = getUserIdFromHeader(authHeader);
+            if (callerId == null || !callerId.equals(id)) {
+                return ResponseEntity.status(403).body("Không thể tác động đến tài khoản Super Admin.");
+            }
+        }
         try {
             User updated = userService.removeRoleFromUser(id, role);
             return ResponseEntity.ok(new UserDTO(updated));
@@ -156,4 +192,5 @@ public class AdminController {
             return ResponseEntity.badRequest().body(ex.getMessage());
         }
     }
+    
 }

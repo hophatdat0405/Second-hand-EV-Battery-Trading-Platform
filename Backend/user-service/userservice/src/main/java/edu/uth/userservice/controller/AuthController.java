@@ -12,13 +12,14 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-
 import java.net.URI;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = {"http://127.0.0.1:5501","http://localhost:3000","http://localhost:5501"})
+//@CrossOrigin(origins = {"http://127.0.0.1:5501", "http://localhost:3000", "http://localhost:5501"})
 public class AuthController {
 
     @Autowired
@@ -28,21 +29,20 @@ public class AuthController {
     private JwtUtil jwtUtil;
 
     /**
-     * Register: tạo user rồi trả token (auto-login).
+     * ✅ Register: tạo user rồi trả token (auto-login).
      * Trả 201 Created + Location + Authorization header + body LoginResponse
      */
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegisterRequest req) {
-        // validation
         if ((req.getEmail() == null || req.getEmail().isBlank()) &&
-            (req.getPhone() == null || req.getPhone().isBlank())) {
+                (req.getPhone() == null || req.getPhone().isBlank())) {
             return ResponseEntity.badRequest().body("Email or phone is required");
         }
         if (req.getPassword() == null || req.getPassword().isBlank()) {
             return ResponseEntity.badRequest().body("Password is required");
         }
 
-        // uniqueness checks
+        // Check uniqueness
         if (req.getEmail() != null && !req.getEmail().isBlank() &&
                 userService.findByEmail(req.getEmail()).isPresent()) {
             return ResponseEntity.badRequest().body("Email already exists");
@@ -52,42 +52,46 @@ public class AuthController {
             return ResponseEntity.badRequest().body("Phone already exists");
         }
 
-        // build user entity
+        // Build user
         User u = new User();
         u.setName(req.getName());
         u.setEmail(req.getEmail());
         u.setPhone(req.getPhone());
-        u.setPassword(req.getPassword()); // đảm bảo UserService.register sẽ hash password
+        u.setPassword(req.getPassword());
         u.setAddress(req.getAddress());
         u.setAccountStatus("active");
 
         User saved = userService.register(u);
 
-        // choose identifier for token: prefer email, fallback phone
         String subject = (saved.getEmail() != null && !saved.getEmail().isBlank())
                 ? saved.getEmail()
                 : (saved.getPhone() != null ? saved.getPhone() : ("user-" + saved.getUserId()));
 
-        String token = jwtUtil.generateToken(subject, saved.getUserId());
+        // ✅ Lấy roles
+        Set<String> roles = saved.getRoles()
+                .stream()
+                .map(r -> r.getName())
+                .collect(Collectors.toSet());
+
+        // ✅ Gọi generateToken mới
+        String token = jwtUtil.generateToken(subject, saved.getUserId(), roles);
+
         LoginResponse resp = new LoginResponse(token, new UserDTO(saved));
 
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "Bearer " + token);
         headers.setLocation(URI.create("/api/user/" + saved.getUserId()));
 
-        // trả 201 Created để rõ ràng tài nguyên đã được tạo
         return ResponseEntity.created(URI.create("/api/user/" + saved.getUserId()))
                 .headers(headers)
                 .body(resp);
     }
 
     /**
-     * Login: hỗ trợ client gửi { identifier, password } hoặc { email, password }.
-     * Nếu identifier/email rỗng -> trả 400 với thông điệp rõ ràng.
+     * ✅ Login: xác thực user rồi trả token có roles
      */
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest req) {
-        // Lấy id thực sự: ưu tiên identifier, nếu không có thì email
         String id = Optional.ofNullable(req.getIdentifier())
                 .filter(s -> !s.isBlank())
                 .or(() -> Optional.ofNullable(req.getEmail()).filter(s -> !s.isBlank()))
@@ -97,13 +101,10 @@ public class AuthController {
             return ResponseEntity.badRequest().body("Identifier and password required");
         }
 
-        // tìm user theo email hoặc phone
         Optional<User> opt;
         if (id.contains("@")) {
-            // nếu chứa @, ưu tiên tìm theo email
-            opt = userService.findByEmail(id).or(() -> userService.findByPhone(id));
+           opt = userService.findByEmailWithRoles(id).or(() -> userService.findByPhoneWithRoles(id));
         } else {
-            // không có @ -> thử email rồi phone (cơ chế hiện tại)
             opt = userService.findByEmail(id).or(() -> userService.findByPhone(id));
         }
 
@@ -122,13 +123,21 @@ public class AuthController {
             return ResponseEntity.status(401).body("Invalid credentials");
         }
 
-        // same identifier selection as in register: prefer email then phone
         String subject = (user.getEmail() != null && !user.getEmail().isBlank())
                 ? user.getEmail()
                 : (user.getPhone() != null ? user.getPhone() : ("user-" + user.getUserId()));
 
-        String token = jwtUtil.generateToken(subject, user.getUserId());
+        // ✅ Lấy roles cho user
+        Set<String> roles = user.getRoles()
+                .stream()
+                .map(r -> r.getName())
+                .collect(Collectors.toSet());
+
+        // ✅ Sinh token với roles
+        String token = jwtUtil.generateToken(subject, user.getUserId(), roles);
+
         LoginResponse resp = new LoginResponse(token, new UserDTO(user));
+
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "Bearer " + token);
 
