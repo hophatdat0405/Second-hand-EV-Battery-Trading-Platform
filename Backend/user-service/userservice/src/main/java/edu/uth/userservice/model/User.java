@@ -28,9 +28,7 @@ public class User {
     @Column(name = "account_status")
     private String accountStatus = "active";
 
-    @Column(name = "is_verified")
-    private Integer isVerified = 0;
-
+    
     @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
 
@@ -71,8 +69,7 @@ public class User {
     public String getAccountStatus() { return accountStatus; }
     public void setAccountStatus(String accountStatus) { this.accountStatus = accountStatus; }
 
-    public Integer getIsVerified() { return isVerified; }
-    public void setIsVerified(Integer isVerified) { this.isVerified = isVerified; }
+    
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
