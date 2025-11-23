@@ -1,28 +1,39 @@
 package edu.uth.userservice.service;
 
-import edu.uth.userservice.model.Role;
-import edu.uth.userservice.model.User;
-import edu.uth.userservice.repository.UserRepository;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import edu.uth.userservice.model.Role;
+import edu.uth.userservice.model.User;
+import edu.uth.userservice.mq.MQPublisher;
+import edu.uth.userservice.repository.UserRepository;
 
 @Service
 public class UserService {
 
     @Autowired
     private UserRepository repo;
-    
 
     @Autowired
     private PasswordEncoder passwordEncoder;
 
     @Autowired
     private RoleService roleService;
+
+    @Autowired
+    private MQPublisher publisher; // ✅ để gửi MQ event sang wallet-service
 
     /**
      * Tìm user theo email
@@ -46,8 +57,7 @@ public class UserService {
     }
 
     /**
-     * Đăng ký user: luôn hash password trước khi lưu.
-     * Gán role USER mặc định.
+     * Đăng ký user: hash password, gán role mặc định, gửi MQ event tạo ví.
      */
     @Transactional
     public User register(User user) {
@@ -55,15 +65,21 @@ public class UserService {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         if (user.getAccountStatus() == null) user.setAccountStatus("active");
 
-        // Save (without roles) first to get userId
+        // Lưu user để lấy ID
         User saved = repo.save(user);
 
-        // Gán role mặc định USER (nếu tồn tại trong DB)
+        // Gán role mặc định USER
         Role userRole = roleService.findByName("USER").orElse(null);
         if (userRole != null) {
             saved.getRoles().add(userRole);
             saved = repo.save(saved);
         }
+
+        // ⬇️ =======================================================
+        // ✅ [ĐÃ SỬA] Gửi message sang wallet-service
+        // Truyền thẳng đối tượng 'saved' (User) thay vì Map
+        publisher.publish("user.created", saved);
+        // ⬆️ =======================================================
 
         return saved;
     }
@@ -75,30 +91,36 @@ public class UserService {
         return passwordEncoder.matches(rawPassword, hashed);
     }
 
-    /**
-     * Cập nhật profile: name, email, phone, address, cityName.
-     */
     @Transactional
     public User updateProfile(Integer userId,
                               String name,
                               String email,
                               String phone,
-                              String address,
-                              String cityName) throws IllegalArgumentException {
+                              String address
+                            ) throws IllegalArgumentException {
         Optional<User> opt = repo.findById(userId);
         if (opt.isEmpty()) {
             throw new IllegalArgumentException("User not found");
         }
         User u = opt.get();
 
-        // Chỉ gán nếu không null (frontend có thể gửi trường rỗng)
         if (name != null) u.setName(name);
         if (email != null) u.setEmail(email.trim().toLowerCase());
         if (phone != null) u.setPhone(phone);
         if (address != null) u.setAddress(address);
-        return repo.save(u);
-    }
+        
+        // Sửa ở đây: Lưu vào biến thay vì return ngay
+        User updatedUser = repo.save(u);
 
+        // ⬇️ =======================================================
+        // ✅ [BỔ SUNG] Gửi message khi cập nhật profile
+        //    (Gửi đối tượng User model đã được cập nhật)
+        publisher.publish("user.updated", updatedUser);
+        // ⬆️ =======================================================
+
+        return updatedUser;
+    }
+    
     @Transactional
     public void changePassword(Integer userId, String currentPassword, String newPassword) throws IllegalArgumentException {
         Optional<User> opt = repo.findById(userId);
@@ -115,71 +137,87 @@ public class UserService {
         repo.save(u);
     }
 
-    /* ---------------- new role management methods ---------------- */
+    /* ---------------- Role management ---------------- */
 
-    /**
-     * Add a role to a user. Returns updated User.
-     * Throws IllegalArgumentException if user or role not found.
-     */
     @Transactional
     public User addRoleToUser(Integer userId, String roleName) {
-        User user = repo.findById(userId).orElseThrow(() -> new IllegalArgumentException("User not found"));
-        Role role = roleService.findByName(roleName).orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleName));
-        // avoid duplicate
-        if (user.getRoles().stream().noneMatch(r -> r.getName().equalsIgnoreCase(roleName))) {
+        User user = repo.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        Role role = roleService.findByName(roleName)
+                .orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleName));
+
+        boolean added = user.getRoles().stream().noneMatch(r -> r.getName().equalsIgnoreCase(roleName));
+        if (added) {
             user.getRoles().add(role);
             user = repo.save(user);
+
+            // ⬇️ =======================================================
+            // ✅ [ĐÃ SỬA] Nếu role là STAFF thì gửi event MQ
+            if ("STAFF".equalsIgnoreCase(roleName)) {
+                Map<String, Object> event = Map.of(
+                        "userId", user.getUserId(),
+                        "role", "STAFF",
+                        "eventType", "ADD"
+                );
+                publisher.publish("user.role.updated", event);
+            }
+            // ⬆️ =======================================================
         }
+
         return user;
     }
 
-    /**
-     * Remove a role from a user. Returns updated User.
-     */
+
     @Transactional
     public User removeRoleFromUser(Integer userId, String roleName) {
-        User user = repo.findById(userId).orElseThrow(() -> new IllegalArgumentException("User not found"));
+        User user = repo.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
         boolean removed = user.getRoles().removeIf(r -> r.getName().equalsIgnoreCase(roleName));
         if (removed) {
             user = repo.save(user);
+
+            // ⬇️ =======================================================
+            // ✅ [ĐÃ SỬA] Nếu bỏ role STAFF thì gửi event
+            if ("STAFF".equalsIgnoreCase(roleName)) {
+                Map<String, Object> event = Map.of(
+                        "userId", user.getUserId(),
+                        "role", "STAFF",
+                        "eventType", "REMOVE"
+                );
+                publisher.publish("user.role.updated", event);
+            }
+            // ⬆️ =======================================================
         }
+
         return user;
     }
 
-    /**
-     * Replace user's roles with the provided role names (clear -> set).
-     * Returns updated User.
-     */
+
     @Transactional
     public User setRolesForUser(Integer userId, List<String> roleNames) {
         User user = repo.findById(userId).orElseThrow(() -> new IllegalArgumentException("User not found"));
 
-        // gather Role entities (throw if any invalid)
         Set<Role> newRoles = roleNames == null ? new HashSet<>() :
                 roleNames.stream()
                         .filter(Objects::nonNull)
                         .map(String::trim)
                         .map(String::toUpperCase)
-                        .map(rn -> roleService.findByName(rn).orElseThrow(
-                                () -> new IllegalArgumentException("Role not found: " + rn)))
+                        .map(rn -> roleService.findByName(rn)
+                                .orElseThrow(() -> new IllegalArgumentException("Role not found: " + rn)))
                         .collect(Collectors.toSet());
 
         user.setRoles(newRoles);
         return repo.save(user);
     }
 
-    // in UserService
-public List<User> findAllUsers() {
-    return repo.findAll();
-}
+    public List<User> findAllUsers() {
+        return repo.findAll();
+    }
 
-
-    /**
-     * Helper: return role names of a user
-     */
     public List<User> listAllUsers() {
-    return repo.findAll();
-}
+        return repo.findAll();
+    }
 
     public Set<String> getRoleNamesForUser(Integer userId) {
         return repo.findById(userId)
@@ -187,9 +225,6 @@ public List<User> findAllUsers() {
                 .orElse(Collections.emptySet());
     }
 
-     /**
-     * Set accountStatus (e.g. "active","locked")
-     */
     @Transactional
     public User setAccountStatus(Integer userId, String status) {
         User u = repo.findById(userId).orElseThrow(() -> new IllegalArgumentException("User not found"));
@@ -206,6 +241,68 @@ public List<User> findAllUsers() {
     public User unlockUser(Integer userId) {
         return setAccountStatus(userId, "active");
     }
-    
-    
+
+    // --- BỔ SUNG CHO AUTHCONTROLLER ---
+
+    @Transactional(readOnly = true)
+    public Optional<User> findByEmailWithRoles(String email) {
+        return repo.findByEmailWithRoles(email);
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<User> findByPhoneWithRoles(String phone) {
+        return repo.findByPhoneWithRoles(phone);
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<User> findByIdWithRoles(Integer id) {
+        return repo.findByIdWithRoles(id);
+    }
+    @Transactional
+    public User processOAuthPostLogin(Map<String, Object> attributes, String registrationId) {
+        // Lấy email và tên từ Google
+        String email = (String) attributes.get("email");
+        String name = (String) attributes.get("name");
+
+        if (email == null || email.isBlank()) {
+            throw new IllegalArgumentException("Email not found in OAuth2 attributes");
+        }
+
+        // Kiểm tra xem user đã tồn tại trong DB của bạn chưa
+        Optional<User> opt = this.findByEmail(email); 
+        User user;
+
+        if (opt.isPresent()) {
+            // Nếu đã tồn tại -> Cập nhật tên nếu cần
+            user = opt.get();
+            boolean changed = false;
+            if (name != null && !name.equals(user.getName())) {
+                user.setName(name);
+                changed = true;
+            }
+            if (changed) {
+                 user = repo.save(user);
+                 // [THÊM MỚI] Gửi sự kiện cập nhật (giống hàm updateProfile)
+                 publisher.publish("user.updated", user);
+            }
+        } else {
+            // Nếu chưa tồn tại -> TẠO USER MỚI
+            user = new User();
+            user.setEmail(email);
+            user.setName(name == null ? "OAuth User" : name);
+            // Đặt mật khẩu giả (vì họ đăng nhập bằng Google)
+            user.setPassword(passwordEncoder.encode("OAuth2_Generated_Password_" + UUID.randomUUID().toString()));
+            user.setAccountStatus("active");
+            
+            // Tự động gán vai trò "USER"
+            Role userRole = roleService.findByName("USER")
+                    .orElseGet(() -> roleService.save(new Role("USER"))); 
+
+            user.getRoles().add(userRole);
+            user = repo.save(user);
+            // [THÊM MỚI] Gửi sự kiện tạo mới (giống hàm register)
+            publisher.publish("user.created", user);
+        }
+        return user;
+    }
 }
