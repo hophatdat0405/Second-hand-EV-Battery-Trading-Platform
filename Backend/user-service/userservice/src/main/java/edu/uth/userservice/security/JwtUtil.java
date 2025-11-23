@@ -6,11 +6,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
-import java.util.Date;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
- * JwtUtil: helper để tạo/kiểm tra token và trích claim.
- * Lưu ý: ensure jwt.secret có đủ độ dài cho HS256 (ít nhất 32 bytes recommended).
+ * ✅ JwtUtil — Quản lý tạo và xác thực JWT token
+ * Bao gồm: userId, email (subject), roles, thời hạn 24h.
  */
 @Component
 public class JwtUtil {
@@ -18,23 +19,29 @@ public class JwtUtil {
     @Value("${jwt.secret}")
     private String jwtSecret;
 
-    // 24 hours
-    private final long jwtExpirationMs = 24 * 60 * 60 * 1000L;
+    // Thời hạn token = 24h
+    private static final long EXPIRATION_MS = 24 * 60 * 60 * 1000L;
 
+    /** 🔑 Sinh key bí mật từ chuỗi jwt.secret (phải >= 32 ký tự cho HS256) */
     private Key getSigningKey() {
         return Keys.hmacShaKeyFor(jwtSecret.getBytes());
     }
 
     /**
-     * Tạo token với subject (ví dụ email) và claim "id" lưu userId (Integer).
+     * ✅ Tạo token gồm subject (email), id và danh sách roles
      */
-    public String generateToken(String subject, Integer userId) {
+    public String generateToken(String subject, Integer userId, Set<String> roles) {
         Date now = new Date();
-        Date exp = new Date(now.getTime() + jwtExpirationMs);
+        Date exp = new Date(now.getTime() + EXPIRATION_MS);
         Key key = getSigningKey();
+
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("id", userId);
+        claims.put("roles", roles == null ? Collections.emptySet() : roles);
+
         return Jwts.builder()
                 .setSubject(subject)
-                .claim("id", userId)
+                .setClaims(claims)
                 .setIssuedAt(now)
                 .setExpiration(exp)
                 .signWith(key, SignatureAlgorithm.HS256)
@@ -42,56 +49,69 @@ public class JwtUtil {
     }
 
     /**
-     * Trích Claims từ token; trả null nếu token không hợp lệ.
+     * 🔍 Giải mã Claims từ token (nếu token hợp lệ)
      */
     private Claims parseClaims(String token) {
         try {
-            Jws<Claims> jws = Jwts.parserBuilder()
+            return Jwts.parserBuilder()
                     .setSigningKey(getSigningKey())
                     .build()
-                    .parseClaimsJws(token);
-            return jws.getBody();
+                    .parseClaimsJws(token)
+                    .getBody();
+        } catch (ExpiredJwtException ex) {
+            // Token hết hạn
+            return ex.getClaims();
         } catch (JwtException | IllegalArgumentException ex) {
-            // token invalid / expired / malformed
             return null;
         }
     }
 
     /**
-     * Lấy userId (Integer) từ claim "id". Trả null nếu không tìm được hoặc token invalid.
+     * ✅ Trích userId từ token
      */
     public Integer extractUserId(String token) {
         Claims claims = parseClaims(token);
         if (claims == null) return null;
         Object idObj = claims.get("id");
         if (idObj == null) return null;
-        if (idObj instanceof Integer) {
-            return (Integer) idObj;
-        } else if (idObj instanceof Number) {
-            return ((Number) idObj).intValue();
-        } else {
-            try {
-                return Integer.valueOf(String.valueOf(idObj));
-            } catch (NumberFormatException ex) {
-                return null;
-            }
+        if (idObj instanceof Number) return ((Number) idObj).intValue();
+        try {
+            return Integer.parseInt(String.valueOf(idObj));
+        } catch (NumberFormatException ex) {
+            return null;
         }
     }
 
     /**
-     * Lấy subject (String) từ token (thường là email hoặc identifier). Trả null nếu token invalid.
+     * ✅ Trích danh sách roles từ token
      */
-    public String extractSubject(String token) {
+    @SuppressWarnings("unchecked")
+    public Set<String> extractRoles(String token) {
         Claims claims = parseClaims(token);
-        if (claims == null) return null;
-        return claims.getSubject();
+        if (claims == null) return Collections.emptySet();
+
+        Object rolesObj = claims.get("roles");
+        if (rolesObj instanceof Collection<?>) {
+            return ((Collection<?>) rolesObj).stream()
+                    .map(Object::toString)
+                    .collect(Collectors.toSet());
+        }
+        return Collections.emptySet();
     }
 
     /**
-     * Validate token (signature + expiration). Trả true nếu hợp lệ.
+     * ✅ Trích subject (email / identifier)
+     */
+    public String extractSubject(String token) {
+        Claims claims = parseClaims(token);
+        return claims != null ? claims.getSubject() : null;
+    }
+
+    /**
+     * ✅ Kiểm tra token hợp lệ (ký + thời hạn)
      */
     public boolean validateToken(String token) {
         Claims claims = parseClaims(token);
-        return claims != null;
+        return claims != null && claims.getExpiration().after(new Date());
     }
 }
