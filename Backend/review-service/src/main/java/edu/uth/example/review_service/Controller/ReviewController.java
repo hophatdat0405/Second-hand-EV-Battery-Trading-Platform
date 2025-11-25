@@ -1,4 +1,4 @@
-// File: edu/uth/example/review_service/Controller/ReviewController.java
+
 package edu.uth.example.review_service.Controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam; // <-- THÊM IMPORT DTO MỚI
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import edu.uth.example.review_service.DTO.OrderCompletedEventDTO;
@@ -29,7 +29,7 @@ public class ReviewController {
     @Autowired
     private ReviewService reviewService;
 
-    // ... (Các API /admin/create-fake-transaction, POST, PUT giữ nguyên) ...
+ 
     @PostMapping("/admin/create-fake-transaction")
     public ResponseEntity<ReviewableTransaction> createFakeTransaction(
             @RequestBody OrderCompletedEventDTO dto) {
@@ -54,25 +54,26 @@ public class ReviewController {
         return ResponseEntity.ok(updatedReview);
     }
 
-    // --- SỬA LẠI HÀM NÀY ĐỂ PHÂN TRANG (TRẢ VỀ DTO) ---
     @GetMapping("/user/{userId}")
     public ResponseEntity<Page<ReviewDTO>> getReviewsForUser(
             @PathVariable Long userId,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "5") int size) { 
-        Page<ReviewDTO> reviews = reviewService.getReviewsAboutUser(userId, page, size);
+            @RequestParam(defaultValue = "5") int size,
+            @RequestParam(required = false) String role 
+    ) { 
+        // Truyền role xuống service
+        Page<ReviewDTO> reviews = reviewService.getReviewsAboutUser(userId, page, size, role);
         return ResponseEntity.ok(reviews);
     }
-    // --- KẾT THÚC SỬA ĐỔI ---
+    
 
-    // (API getReviewStats giữ nguyên)
     @GetMapping("/user/{userId}/stats")
     public ResponseEntity<UserReviewStatsDTO> getReviewStats(@PathVariable Long userId) {
         UserReviewStatsDTO stats = reviewService.getReviewStatsForUser(userId);
         return ResponseEntity.ok(stats);
     }
     
-    // (Các API /tasks/... giữ nguyên)
+ 
     @GetMapping("/tasks/to-review")
     public ResponseEntity<Page<ReviewableTransaction>> getTasksToReview(
             @RequestHeader("X-User-Id") Long currentUserId,
@@ -91,7 +92,7 @@ public class ReviewController {
         return ResponseEntity.ok(tasksPage);
     }
     
-    // --- SỬA LẠI API NÀY (TRẢ VỀ DTO) ---
+  
     @GetMapping("/by-user/{userId}")
     public ResponseEntity<Page<ReviewDTO>> getReviewsByUser(
             @PathVariable Long userId,
@@ -100,5 +101,11 @@ public class ReviewController {
         Page<ReviewDTO> reviews = reviewService.getReviewsByUser(userId, page, size);
         return ResponseEntity.ok(reviews);
     }
-    // --- KẾT THÚC SỬA ĐỔI ---
+
+
+@GetMapping("/tasks/count-pending")
+    public ResponseEntity<Long> getPendingReviewCount(@RequestHeader("X-User-Id") Long userId) {
+        long count = reviewService.countPendingReviews(userId);
+        return ResponseEntity.ok(count);
+    }
 }

@@ -1,4 +1,4 @@
-// File: edu/uth/example/review_service/Repository/ReviewRepository.java
+
 package edu.uth.example.review_service.Repository;
 import java.util.List;
 
@@ -13,26 +13,37 @@ import edu.uth.example.review_service.Model.Review;
 
 public interface ReviewRepository extends JpaRepository<Review, Long> {
 
-    // (Hàm cũ)
+  
     List<Review> findByReviewedPartyId(Long reviewedPartyId);
 
-    // (Hàm cũ)
+    
     @Query(value = "SELECT AVG(rating) AS avg_rating, COUNT(*) AS total_reviews FROM reviews WHERE reviewed_party_id = :userId", nativeQuery = true)
     List<Object[]> getReviewStatsForUser(@Param("userId") Long userId);
 
-    // (Hàm phân trang 1)
+
     @EntityGraph(attributePaths = {"transaction"})
     Page<Review> findByReviewedPartyId(Long reviewedPartyId, Pageable pageable);
 
-    // (Hàm phân trang 2)
+  
     @EntityGraph(attributePaths = {"transaction"})
     Page<Review> findByReviewerId(Long reviewerId, Pageable pageable);
     
-    // --- THÊM HÀM MỚI NÀY ---
+  
     /**
      * Tìm tất cả (không phân trang) các review DO một người dùng viết.
      * Dùng để cập nhật tên khi user đổi tên.
      */
     List<Review> findByReviewerId(Long reviewerId);
-    // --- KẾT THÚC HÀM MỚI ---
+    
+
+    // (Người viết review phải là Buyer trong transaction)
+    @EntityGraph(attributePaths = {"transaction"})
+    @Query("SELECT r FROM Review r JOIN r.transaction t WHERE r.reviewedPartyId = :userId AND t.buyerId = r.reviewerId")
+    Page<Review> findReviewsFromBuyers(@Param("userId") Long userId, Pageable pageable);
+
+  
+    // (Người viết review phải là Seller trong transaction)
+    @EntityGraph(attributePaths = {"transaction"})
+    @Query("SELECT r FROM Review r JOIN r.transaction t WHERE r.reviewedPartyId = :userId AND t.sellerId = r.reviewerId")
+    Page<Review> findReviewsFromSellers(@Param("userId") Long userId, Pageable pageable);
 }

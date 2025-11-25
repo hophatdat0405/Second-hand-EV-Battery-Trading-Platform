@@ -1,4 +1,4 @@
-// File: edu/uth/example/review_service/DTO/UserEventDTO.java
+
 package edu.uth.example.review_service.DTO;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;

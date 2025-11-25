@@ -3,8 +3,8 @@ import lombok.Data;
 
 @Data
 public class ReviewRequestDTO {
-    // --- THAY ĐỔI CHÍNH ---
-    private Long productId; // <-- Thay thế cho listingId
+   
+    private Long productId; 
     
     private int rating;     
     private String comment;

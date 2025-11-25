@@ -1,4 +1,4 @@
-// File: edu/uth/example/review_service/DTO/ReviewDTO.java
+
 package edu.uth.example.review_service.DTO;
 
 import java.util.Date;
@@ -8,11 +8,7 @@ import edu.uth.example.review_service.Model.ReviewableTransaction;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * DTO này được sử dụng cho trang Hồ sơ (manage-listings.js).
- * Nó "làm phẳng" Review và Transaction để tránh lỗi lặp JSON
- * và cung cấp đầy đủ thông tin sản phẩm.
- */
+
 @Data
 @NoArgsConstructor
 public class ReviewDTO {

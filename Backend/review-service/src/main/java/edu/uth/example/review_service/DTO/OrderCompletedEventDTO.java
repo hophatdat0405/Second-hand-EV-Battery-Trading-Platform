@@ -1,15 +1,21 @@
 package edu.uth.example.review_service.DTO;
 
+import com.fasterxml.jackson.annotation.JsonAlias; 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import lombok.Data;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 @Data
 public class OrderCompletedEventDTO {
-    // (Đã xóa listingId)
     private Long sellerId;
+
+   
+    @JsonAlias("userId") 
     private Long buyerId;
-    private String productName; // Tên dự phòng
+    
+    private String productName;
     private Long price;
     
-    // --- KHÓA CHÍNH MỚI ---
-    private Long productId;     // ID của sản phẩm (Order-Service gửi cái này)
+    private Long productId;
 }

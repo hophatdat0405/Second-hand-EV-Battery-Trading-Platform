@@ -1,7 +1,7 @@
-// File: edu/uth/example/review_service/Model/ReviewableTransaction.java
+
 package edu.uth.example.review_service.Model;
 
-import java.util.ArrayList; // <-- THÊM IMPORT NÀY
+import java.util.ArrayList; 
 import java.util.Date;
 import java.util.List;
 
@@ -54,8 +54,8 @@ public class ReviewableTransaction {
     @Temporal(TemporalType.TIMESTAMP)
     private Date expiresAt; 
 
-    // --- THÊM @JsonManagedReference ---
-    @JsonManagedReference // <-- SỬA TẠI ĐÂY
+    
+    @JsonManagedReference 
     @OneToMany(mappedBy = "transaction", fetch = FetchType.LAZY)
     private List<Review> reviews = new ArrayList<>();
 

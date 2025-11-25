@@ -1,7 +1,7 @@
-// File: edu/uth/example/review_service/Model/Review.java
+
 package edu.uth.example.review_service.Model;
 
-import java.util.Date; // <-- THÊM IMPORT NÀY
+import java.util.Date; 
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 
@@ -29,8 +29,8 @@ public class Review {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // --- THÊM @JsonBackReference ---
-    @JsonBackReference // <-- SỬA TẠI ĐÂY
+   
+    @JsonBackReference 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "transaction_id", nullable = false)
     private ReviewableTransaction transaction;

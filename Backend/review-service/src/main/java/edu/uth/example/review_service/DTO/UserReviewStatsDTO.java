@@ -1,11 +1,16 @@
 package edu.uth.example.review_service.DTO;
-import lombok.Data;
-import lombok.AllArgsConstructor;
 
-// DTO 3: Dữ liệu trả về khi xem thống kê Profile
+import java.io.Serializable;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+
 @Data
+@NoArgsConstructor           
 @AllArgsConstructor
-public class UserReviewStatsDTO {
+public class UserReviewStatsDTO implements Serializable {
     private Long userId;
     private Double averageRating;
     private Long totalReviews;

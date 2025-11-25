@@ -1,4 +1,4 @@
-// File: edu/uth/example/review_service/EventListener/UserEventListener.java
+
 package edu.uth.example.review_service.EventListener;
 
 import org.slf4j.Logger;
@@ -25,10 +25,6 @@ public class UserEventListener {
             return;
         }
 
-        // --- SỬA LỖI TẠI ĐÂY ---
-        // Lý do: User-service gửi toàn bộ đối tượng User, không có trường "eventType".
-        // Việc lọc sự kiện đã được thực hiện bởi RabbitMQ routing key ("user.#").
-        // Bất kỳ tin nhắn nào đến đây đều là tin hợp lệ cần đồng bộ.
         
         log.info("Nhận được sự kiện đồng bộ User (từ user.#) cho User ID: {}", userEvent.getId());
         
@@ -47,6 +43,6 @@ public class UserEventListener {
         } catch (Exception e) {
             log.error("Lỗi khi đồng bộ tên người đánh giá cho User ID: {}: {}", userEvent.getId(), e.getMessage());
         }
-        // --- KẾT THÚC SỬA LỖI ---
+       
     }
 }
