@@ -65,6 +65,15 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
         }
         
         User user = opt.get();
+        // 🔥🔥🔥 [THÊM ĐOẠN NÀY] CHẶN USER BỊ KHÓA 🔥🔥🔥
+        // Kiểm tra nếu status không phải "active"
+        if (!"active".equalsIgnoreCase(user.getAccountStatus())) {
+            logger.warn("❌ BLOCKED: Locked user attempted OAuth login: {}", email);
+            // Redirect về frontend kèm lỗi
+            response.sendRedirect(frontendRedirect + "?error=account_locked");
+            return;
+        }
+        // ⬆️⬆️⬆️ KẾT THÚC PHẦN CHẶN ⬆️⬆️⬆️
         Set<String> roles = user.getRoles().stream()
                                 .map(r -> r.getName())
                                 .collect(Collectors.toSet());
