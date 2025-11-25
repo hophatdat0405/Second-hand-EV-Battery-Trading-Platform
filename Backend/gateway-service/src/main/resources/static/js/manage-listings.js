@@ -834,6 +834,14 @@ document.addEventListener("DOMContentLoaded", () => {
         <a href="${reviewerLink}" target="_blank" class="text-blue-600 hover:underline">${reviewerName}</a>
       </h4>`;
 
+    let reviewDateStr = "";
+    if (review.createdAt) {
+      const dateRaw = review.createdAt.endsWith("Z")
+        ? review.createdAt
+        : review.createdAt + "Z";
+      reviewDateStr = new Date(dateRaw).toLocaleString("vi-VN");
+    }
+
     return `
     <div class="review-card flex flex-col sm:flex-row gap-4">
         <div class="flex-shrink-0 sm:w-1/3 p-3 bg-gray-50 rounded-lg border flex gap-3">
@@ -1716,9 +1724,11 @@ document.addEventListener("DOMContentLoaded", () => {
       // Dùng class CSS (msg-admin / msg-user) giống purchase.js
       bubble.className = "msg-bubble " + (adminFlag ? "msg-admin" : "msg-user");
 
-      const timeStr = createdAt
-        ? new Date(createdAt).toLocaleString("vi-VN")
-        : "";
+      let timeStr = "";
+      if (createdAt) {
+        const dateStr = createdAt.endsWith("Z") ? createdAt : createdAt + "Z";
+        timeStr = new Date(dateStr).toLocaleString("vi-VN");
+      }
 
       // Đổi "Bạn" (từ purchase.js) thành "Người Bán"
       bubble.innerHTML = `

@@ -8,7 +8,6 @@ const COMPLAINT_API = "http://localhost:9000/api/complaints";
 const SSE_USER_STREAM = "http://localhost:9000/api/stream/user";
 
 document.addEventListener("DOMContentLoaded", async () => {
-  // === 🛑 BỔ SUNG CSS CHO UI (CARD, SCROLL, TAB EFFECT) ===
   const styles = `
         /* --- CSS CŨ CHO CARD --- */
         .order-body-content {
@@ -531,7 +530,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     // gán class rõ ràng: msg-admin hoặc msg-user
     bubble.className = "msg-bubble " + (adminFlag ? "msg-admin" : "msg-user");
 
-    const timeStr = createdAt ? new Date(createdAt).toLocaleString() : "";
+    let timeStr = "";
+    if (createdAt) {
+      const dateStr = createdAt.endsWith("Z") ? createdAt : createdAt + "Z";
+      timeStr = new Date(dateStr).toLocaleString("vi-VN");
+    }
     bubble.innerHTML = `
         <div style="font-weight:700">${escapeHtml(
           senderName || (adminFlag ? "Admin" : "Bạn")

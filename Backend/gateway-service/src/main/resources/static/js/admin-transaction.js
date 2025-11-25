@@ -512,7 +512,11 @@ async function initializeApp() {
     const bubble = document.createElement("div");
     bubble.className = "msg-bubble " + (isAdminMsg ? "msg-admin" : "msg-user");
 
-    const timeStr = createdAt ? new Date(createdAt).toLocaleString() : "";
+    let timeStr = "";
+    if (createdAt) {
+        const dateStr = createdAt.endsWith("Z") ? createdAt : createdAt + "Z";
+        timeStr = new Date(dateStr).toLocaleString("vi-VN"); 
+    }
 
     bubble.innerHTML = `
     <div style="font-weight:700">${escapeHtml(
