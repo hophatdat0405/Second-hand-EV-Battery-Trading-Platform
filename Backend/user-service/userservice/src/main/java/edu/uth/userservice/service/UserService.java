@@ -260,7 +260,7 @@ public class UserService {
     }
     @Transactional
     public User processOAuthPostLogin(Map<String, Object> attributes, String registrationId) {
-        // Lấy email và tên từ Google
+
         String email = (String) attributes.get("email");
         String name = (String) attributes.get("name");
 
@@ -268,41 +268,32 @@ public class UserService {
             throw new IllegalArgumentException("Email not found in OAuth2 attributes");
         }
 
-        // Kiểm tra xem user đã tồn tại trong DB của bạn chưa
-        Optional<User> opt = this.findByEmail(email); 
-        User user;
+        // Tìm user đã tồn tại
+        Optional<User> opt = this.findByEmail(email);
 
         if (opt.isPresent()) {
-            // Nếu đã tồn tại -> Cập nhật tên nếu cần
-            user = opt.get();
-            boolean changed = false;
-            if (name != null && !name.equals(user.getName())) {
-                user.setName(name);
-                changed = true;
-            }
-            if (changed) {
-                 user = repo.save(user);
-                 // [THÊM MỚI] Gửi sự kiện cập nhật (giống hàm updateProfile)
-                 publisher.publish("user.updated", user);
-            }
-        } else {
-            // Nếu chưa tồn tại -> TẠO USER MỚI
-            user = new User();
-            user.setEmail(email);
-            user.setName(name == null ? "OAuth User" : name);
-            // Đặt mật khẩu giả (vì họ đăng nhập bằng Google)
-            user.setPassword(passwordEncoder.encode("OAuth2_Generated_Password_" + UUID.randomUUID().toString()));
-            user.setAccountStatus("active");
-            
-            // Tự động gán vai trò "USER"
-            Role userRole = roleService.findByName("USER")
-                    .orElseGet(() -> roleService.save(new Role("USER"))); 
-
-            user.getRoles().add(userRole);
-            user = repo.save(user);
-            // [THÊM MỚI] Gửi sự kiện tạo mới (giống hàm register)
-            publisher.publish("user.created", user);
+            // ❗ Không cập nhật name nữa – giữ nguyên dữ liệu mà user đã chỉnh trong profile
+            return opt.get();
         }
-        return user;
+
+        // 🆕 Lần đầu login -> tạo user mới
+        User user = new User();
+        user.setEmail(email);
+        user.setName(name == null ? "OAuth User" : name);
+        user.setPassword(passwordEncoder.encode("OAuth2_Generated_Password_" + UUID.randomUUID()));
+        user.setAccountStatus("active");
+
+        // Gán role USER lần đầu
+        Role userRole = roleService.findByName("USER")
+                .orElseGet(() -> roleService.save(new Role("USER")));
+        user.getRoles().add(userRole);
+
+        User saved = repo.save(user);
+
+        // Gửi sự kiện tạo mới ví
+        publisher.publish("user.created", saved);
+
+        return saved;
     }
+
 }
