@@ -1,4 +1,4 @@
-// File: src/main/java/edu/uth/listingservice/dto/events/UserDataResponseDTO.java
+
 package edu.uth.listingservice.events;
 
 import lombok.Data;

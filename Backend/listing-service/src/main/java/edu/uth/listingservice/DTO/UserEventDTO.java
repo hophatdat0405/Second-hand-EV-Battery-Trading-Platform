@@ -1,16 +1,10 @@
-// File: src/main/java/edu/uth/listingservice/DTO/UserEventDTO.java
+
 package edu.uth.listingservice.DTO;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-/**
- * DTO này chứa thông tin người dùng được gửi qua RabbitMQ từ User Service
- * để đồng bộ hóa.
- *
- * @JsonIgnoreProperties(ignoreUnknown = true) Bỏ qua bất kỳ trường nào 
- * (như password, roles...) không được định nghĩa ở đây.
- */
+
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class UserEventDTO {
 

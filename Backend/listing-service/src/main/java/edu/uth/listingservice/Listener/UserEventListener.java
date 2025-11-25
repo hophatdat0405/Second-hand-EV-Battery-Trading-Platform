@@ -1,4 +1,4 @@
-// File: src/main/java/edu/uth/listingservice/Listener/UserEventListener.java
+
 package edu.uth.listingservice.Listener;
 
 import edu.uth.listingservice.DTO.UserDTO;
@@ -48,7 +48,7 @@ public class UserEventListener {
         }
 
         // 2. CẬP NHẬT CSDL (kho "bản sao")
-        // ✅ SỬA ĐỔI: Hàm này bây giờ sẽ xóa cả cache "productDetails"
+        //  SỬA ĐỔI: Hàm này bây giờ sẽ xóa cả cache "productDetails"
         try {
             updateExistingListingsInDb(userEvent);
         } catch (Exception e) {
@@ -123,8 +123,7 @@ public class UserEventListener {
         listingRepository.saveAll(listings); 
         log.info("Successfully updated DB listings for user ID: {}", userId);
 
-        // 3. [SỬA] XÓA TẤT CẢ CÁC CACHE DANH SÁCH LIÊN QUAN
-        // =======================================================
+       
         try {
             cacheManager.getCache("userListings").clear();
             cacheManager.getCache("userListingPage").clear();
@@ -135,6 +134,6 @@ public class UserEventListener {
         } catch (Exception e) {
             log.error("Error evicting listing caches: {}", e.getMessage());
         }
-        // =======================================================
+     
     }
 }

@@ -32,7 +32,7 @@ public class AdminListingUpdateDTO {
         if (listing.getProduct() != null) {
             this.productName = listing.getProduct().getProductName();
         } else {
-            this.productName = "[Không có tiêu đề]"; // Dự phòng
+            this.productName = "[Không có tiêu đề]"; 
         }
         
         this.userId = listing.getUserId();

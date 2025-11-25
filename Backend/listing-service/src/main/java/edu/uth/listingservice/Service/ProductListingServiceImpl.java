@@ -187,7 +187,7 @@ public class ProductListingServiceImpl implements ProductListingService {
                 .orElseThrow(() -> new RuntimeException("Listing not found with ID: " + id));
     }
 
-    // SỬA: Thêm lại vòng lặp để "giải phóng" proxy
+    //  Thêm lại vòng lặp để "giải phóng" proxy
     @Cacheable(value = "activeListings", key = "#type + '-' + #sortBy + '-' + #page + '-' + #size")
     @Override
     @Transactional(readOnly = true) 

@@ -1,5 +1,6 @@
 package edu.uth.listingservice.Service;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
@@ -15,12 +16,12 @@ public class FileStorageService {
 
     private final Path rootLocation;
 
-    // Cấu hình thư mục lưu trữ ảnh
-    public FileStorageService() {
-        // Ảnh sẽ được lưu vào thư mục 'uploads' trong project của bạn
-        this.rootLocation = Paths.get("uploads"); 
+    // Inject giá trị từ application.properties hoặc biến môi trường
+    // Mặc định là "uploads" (cho local), Docker sẽ ghi đè thành "/app/uploads"
+    public FileStorageService(@Value("${app.upload.dir:uploads}") String uploadDir) {
+        this.rootLocation = Paths.get(uploadDir).toAbsolutePath().normalize();
         try {
-            Files.createDirectories(rootLocation);
+            Files.createDirectories(this.rootLocation);
         } catch (IOException e) {
             throw new RuntimeException("Could not initialize storage location", e);
         }
@@ -31,19 +32,24 @@ public class FileStorageService {
             throw new RuntimeException("Failed to store empty file.");
         }
 
-        // Tạo một tên file ngẫu nhiên để tránh trùng lặp
         String extension = getFileExtension(file.getOriginalFilename());
         String newFileName = UUID.randomUUID().toString() + "." + extension;
 
         try {
+            // Resolve đường dẫn file đích
             Path destinationFile = this.rootLocation.resolve(Paths.get(newFileName))
                     .normalize().toAbsolutePath();
+
+            // Bảo mật: Kiểm tra file có nằm ngoài thư mục cho phép không
+            if (!destinationFile.getParent().equals(this.rootLocation)) {
+                throw new RuntimeException("Cannot store file outside current directory.");
+            }
 
             try (InputStream inputStream = file.getInputStream()) {
                 Files.copy(inputStream, destinationFile, StandardCopyOption.REPLACE_EXISTING);
             }
 
-            // Trả về đường dẫn công khai để truy cập file
+            // Trả về đường dẫn URL công khai
             return "/uploads/" + newFileName;
 
         } catch (IOException e) {
@@ -57,17 +63,16 @@ public class FileStorageService {
         }
         return filename.substring(filename.lastIndexOf(".") + 1);
     }
+
     public void delete(String filePath) {
         if (filePath == null || filePath.isBlank()) {
             return;
         }
         try {
-            // Lấy tên file từ đường dẫn URL (ví dụ: /uploads/abc.jpg -> abc.jpg)
             String filename = filePath.substring(filePath.lastIndexOf("/") + 1);
             Path file = rootLocation.resolve(filename);
             Files.deleteIfExists(file);
         } catch (IOException e) {
-            // Log lỗi thay vì throw exception để không làm dừng chương trình
             System.err.println("Could not delete file: " + filePath + ". Error: " + e.getMessage());
         }
     }

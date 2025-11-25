@@ -14,16 +14,13 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Lớp "bản sao" của PageImpl để giúp Jackson (JSON) 
- * có thể đọc và ghi (serialize/deserialize) đối tượng Page.
- */
+
  
-// === THÊM ANNOTATION NÀY ===
+
 // Báo cho Jackson không cần tìm trường "@class" cho riêng class này,
 // ngay cả khi default typing đang được bật.
 @JsonTypeInfo(use = JsonTypeInfo.Id.NONE)
-// ==========================
+
 public class RestPage<T> extends PageImpl<T> {
 
     @JsonCreator(mode = JsonCreator.Mode.PROPERTIES)

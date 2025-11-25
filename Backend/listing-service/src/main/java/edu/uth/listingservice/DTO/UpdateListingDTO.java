@@ -1,4 +1,4 @@
-package edu.uth.listingservice.DTO; // Thay đổi package cho đúng với cấu trúc của bạn
+package edu.uth.listingservice.DTO; 
 
 import lombok.Data;
 

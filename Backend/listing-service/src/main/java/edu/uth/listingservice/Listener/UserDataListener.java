@@ -1,10 +1,10 @@
-// File: src/main/java/edu/uth/listingservice/mq/UserDataListener.java
+
 package edu.uth.listingservice.Listener;
 
 import edu.uth.listingservice.events.UserDataResponseDTO;
 import edu.uth.listingservice.Model.ProductListing;
 import edu.uth.listingservice.Repository.ProductListingRepository;
-import edu.uth.listingservice.Config.RabbitMQConfig; // Import config mới
+import edu.uth.listingservice.Config.RabbitMQConfig;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -38,8 +38,8 @@ public class UserDataListener {
             // Cập nhật thông tin
             listing.setSellerName(response.getName());
             listing.setSellerEmail(response.getEmail());
-            // Bạn có thể cập nhật thêm SĐT, Địa chỉ nếu model ProductListing có
-            // listing.setPhone(response.getPhone()); 
+           
+        
             
             listingRepository.save(listing);
             log.info("Successfully updated seller info for listingId: {}", response.getListingId());

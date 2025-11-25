@@ -3,7 +3,7 @@ package edu.uth.listingservice.Service;
 import edu.uth.listingservice.Model.ProductListing;
 import edu.uth.listingservice.DTO.UpdateListingDTO;
 import java.util.List;
-import org.springframework.data.domain.Page; // Thêm import này
+import org.springframework.data.domain.Page; 
 import org.springframework.web.multipart.MultipartFile;
 public interface ProductListingService {
     List<ProductListing> getAll();
@@ -22,7 +22,7 @@ public interface ProductListingService {
     // Phương thức để xóa một ảnh cụ thể bằng ID của ảnh
     void deleteImageFromListing(Long listingId, Long imageId);
     Page<ProductListing> getByUserId(Long userId, int page, int size);
-   //  HÀM MỚI:
+ 
     int findPageForListing(Long userId, Long listingId, int pageSize);
 
 

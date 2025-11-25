@@ -1,7 +1,8 @@
-package edu.uth.listingservice.Config; // Đảm bảo package này đúng
+package edu.uth.listingservice.Config;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -13,23 +14,27 @@ public class MvcConfig implements WebMvcConfigurer {
 
     private static final Logger logger = LoggerFactory.getLogger(MvcConfig.class);
 
+    // Lấy đường dẫn từ cấu hình. Mặc định là "uploads" nếu không có biến môi trường
+    @Value("${app.upload.dir:uploads}")
+    private String uploadDir;
+
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        // Lấy đường dẫn đến thư mục gốc của project một cách tự động
-        Path projectDir = Paths.get(System.getProperty("user.dir"));
-        // Tạo đường dẫn tuyệt đối đến thư mục 'uploads'
-        Path uploadDir = projectDir.resolve("uploads");
+        // Chuyển chuỗi đường dẫn thành Path tuyệt đối
+        Path path = Paths.get(uploadDir).toAbsolutePath().normalize();
         
-        // Chuyển đổi sang định dạng URI mà Spring Boot hiểu được (ví dụ: "file:/D:/path/to/uploads/")
-        String resourceLocation = uploadDir.toUri().toString();
+        // Chuyển sang định dạng URI (file:/...)
+        String resourceLocation = path.toUri().toString();
 
-        // In ra log để kiểm tra lần cuối
-        logger.info("================== MvcConfig FINAL CHECK ==================");
-        logger.info("Đường dẫn vật lý đang được đăng ký: " + uploadDir.toAbsolutePath());
-        logger.info("Resource Location URI được sử dụng: " + resourceLocation);
-        logger.info("==========================================================");
+        // QUAN TRỌNG: Spring Boot bắt buộc đường dẫn thư mục phải kết thúc bằng dấu "/"
+        if (!resourceLocation.endsWith("/")) {
+            resourceLocation += "/";
+        }
 
-        // Cấu hình resource handler
+        logger.info("================== MVC CONFIG ==================");
+        logger.info("Serving static content from: " + resourceLocation);
+        logger.info("================================================");
+
         registry.addResourceHandler("/uploads/**")
                 .addResourceLocations(resourceLocation);
     }
