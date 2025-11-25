@@ -1,4 +1,4 @@
-// File: edu/uth/notificationservice/DTO/RegisterDeviceDTO.java
+
 package edu.uth.notification_service.DTO;
 
 import lombok.Data;
@@ -6,5 +6,5 @@ import lombok.Data;
 @Data
 public class RegisterDeviceDTO {
     private Long userId;
-    private String token; // Tên token mà Frontend gửi lên
+    private String token; 
 }

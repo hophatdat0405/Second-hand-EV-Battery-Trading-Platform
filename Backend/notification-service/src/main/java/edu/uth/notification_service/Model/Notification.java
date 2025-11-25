@@ -1,4 +1,4 @@
-// Tạo file mới: edu/uth/listingservice/Model/Notification.java
+
 package edu.uth.notification_service.Model;
 
 import java.util.Date;

@@ -1,4 +1,4 @@
-// File: edu/uth/notificationservice/DTO/ListingEventDTO.java
+
 package edu.uth.notification_service.DTO;
 
 import lombok.AllArgsConstructor;

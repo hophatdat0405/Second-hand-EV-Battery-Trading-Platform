@@ -1,4 +1,4 @@
-// File: edu/uth/notificationservice/Service/UserDeviceService.java
+
 package edu.uth.notification_service.Service;
 
 import java.util.Date;
@@ -21,7 +21,7 @@ public class UserDeviceService {
     private UserDeviceTokenRepository userDeviceTokenRepository;
 
     /**
-     * ✅ NÂNG CẤP: Logic đăng ký (chạy khi user đăng nhập)
+     *  NÂNG CẤP: Logic đăng ký (chạy khi user đăng nhập)
      */
     @Transactional
     public void registerOrUpdateDevice(RegisterDeviceDTO dto) {
@@ -48,7 +48,7 @@ public class UserDeviceService {
     }
     
     /**
-     * ✅ HÀM MỚI: Logic hủy đăng ký (chạy khi user đăng xuất)
+     * Logic hủy đăng ký (chạy khi user đăng xuất)
      */
     @Transactional
     public void unregisterDevice(RegisterDeviceDTO dto) {

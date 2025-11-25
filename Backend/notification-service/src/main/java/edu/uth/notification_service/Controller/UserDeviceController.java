@@ -1,4 +1,4 @@
-// File: edu/uth/notificationservice/Controller/UserDeviceController.java
+
 package edu.uth.notification_service.Controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +25,7 @@ public class UserDeviceController {
         return ResponseEntity.ok().build();
     }
 
-    // ✅ NÂNG CẤP: Thêm endpoint này
+    //  NÂNG CẤP: Thêm endpoint này
     @PostMapping("/unregister")
     public ResponseEntity<Void> unregisterDevice(@RequestBody RegisterDeviceDTO dto) {
         userDeviceService.unregisterDevice(dto);

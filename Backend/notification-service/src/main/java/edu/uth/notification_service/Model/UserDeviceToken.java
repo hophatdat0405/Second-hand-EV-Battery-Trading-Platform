@@ -1,4 +1,4 @@
-// File: edu/uth/notificationservice/Model/UserDeviceToken.java
+
 package edu.uth.notification_service.Model;
 
 import java.util.Date;
@@ -16,7 +16,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
-// ✅ NÂNG CẤP: Dùng "UniqueConstraint" để đảm bảo 1 user không đăng ký
+//  NÂNG CẤP: Dùng "UniqueConstraint" để đảm bảo 1 user không đăng ký
 // cùng 1 token 2 lần.
 @Table(name = "user_device_tokens", uniqueConstraints = {
     @UniqueConstraint(columnNames = {"user_id", "device_token"})
@@ -29,7 +29,7 @@ public class UserDeviceToken {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // ✅ NÂNG CẤP: Xóa 'unique = true'
+    //  NÂNG CẤP: Xóa 'unique = true'
     @Column(name = "user_id", nullable = false) 
     private Long userId;
 

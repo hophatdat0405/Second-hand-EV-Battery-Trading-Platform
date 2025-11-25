@@ -1,3 +1,4 @@
+
 package edu.uth.notification_service.Service;
 
 import java.util.List;
@@ -12,8 +13,6 @@ import com.google.firebase.messaging.MulticastMessage;
 
 import edu.uth.notification_service.Model.Notification;
 
-// ⛔ Đã xóa 'import com.google.firebase.messaging.Notification;'
-
 @Service
 public class FCMService {
 
@@ -23,50 +22,66 @@ public class FCMService {
     @Autowired
     private UserDeviceService userDeviceService;
 
-    // Hàm này nhận Model "Notification" của bạn (từ CSDL)
+
     public void sendPushNotification(Notification notification) {
-        
-        // (Đây là logic 1-Nhiều đã nâng cấp)
         List<String> deviceTokens = userDeviceService.getTokensByUserId(notification.getUserId());
 
         if (deviceTokens == null || deviceTokens.isEmpty()) {
-            System.err.println("Không tìm thấy Device Token nào trong CSDL cho User ID: " + notification.getUserId() + ". Bỏ qua gửi FCM.");
+            System.err.println("Không tìm thấy token cho User ID: " + notification.getUserId());
             return;
         }
         
         if (deviceTokens.size() > 500) {
-             System.err.println("User " + notification.getUserId() + " có quá nhiều token. Chỉ gửi cho 500 token đầu tiên.");
              deviceTokens = deviceTokens.subList(0, 500);
         }
 
-        // 1. ⛔ ĐÃ XÓA BỎ đối tượng 'fcmNotification'
-        // Chúng ta sẽ đưa title và body vào 'data'
-
-        // 2. Tạo MulticastMessage (CHỈ DÙNG DATA)
         MulticastMessage message = MulticastMessage.builder()
                 .addAllTokens(deviceTokens) 
-                // ⛔ ĐÃ XÓA DÒNG: .setNotification(fcmNotification)
-                
-                // ✅ THÊM TITLE VÀ BODY VÀO DATA
-                .putData("title", "Bạn có thông báo mới!") // <-- THAY ĐỔI
-                .putData("body", notification.getMessage())     // <-- THAY ĐỔI
-
-                // DỮ LIỆU CŨ CỦA BẠN
+                .putData("title", "Bạn có thông báo mới!")
+                .putData("body", notification.getMessage())
                 .putData("link", notification.getLink())
                 .putData("notificationId", notification.getId().toString())
-
-                // DỮ LIỆU MỚI
-                .putData("image", "http://127.0.0.1:5501/images/acer.webp") 
-                .putData("badge", "http://127.0.0.1:5501/images/hp.webp")
-                
+                .putData("type", "system") // Đánh dấu là thông báo hệ thống
+                .putData("image", "http://localhost:9000/images/logo.png") 
                 .build();
 
-        // 3. Gửi thông báo
+        try {
+            firebaseMessaging.sendEachForMulticast(message);
+        } catch (FirebaseMessagingException e) {
+            System.err.println("Lỗi gửi FCM: " + e.getMessage());
+        }
+    }
+
+    // --- [MỚI] HÀM GỬI THÔNG BÁO CHAT (Data-only) ---
+    public void sendPushNotificationToUser(Long userId, String title, String body, String link) {
+        // 1. Lấy token (Tái sử dụng hàm getTokensByUserId của bạn)
+        List<String> deviceTokens = userDeviceService.getTokensByUserId(userId);
+
+        if (deviceTokens == null || deviceTokens.isEmpty()) {
+            // User đang offline hoặc chưa đăng ký thiết bị -> Không gửi
+            return;
+        }
+
+        if (deviceTokens.size() > 500) {
+            deviceTokens = deviceTokens.subList(0, 500);
+        }
+
+        // 2. Tạo Message Data-only
+        MulticastMessage message = MulticastMessage.builder()
+                .addAllTokens(deviceTokens)
+                .putData("title", title)
+                .putData("body", body)
+                .putData("link", link)
+                .putData("type", "chat") 
+                .putData("image", "http://localhost:9000/images/logo.png") 
+                .build();
+
+        // 3. Gửi
         try {
             BatchResponse response = firebaseMessaging.sendEachForMulticast(message);
-            System.out.println("Gửi FCM (Data-only) thành công: " + response.getSuccessCount() + " messages");
+            System.out.println("📨 Gửi FCM Chat thành công: " + response.getSuccessCount() + " thiết bị.");
         } catch (FirebaseMessagingException e) {
-            System.err.println("Lỗi khi gửi FCM: " + e.getMessage());
+            System.err.println("❌ Lỗi gửi FCM Chat: " + e.getMessage());
         }
     }
 }
