@@ -39,9 +39,9 @@ public class PayrollController {
             @RequestBody UpdateStaffSalaryRequest req) {
         try {
             payrollService.upsertStaffSalary(userId, req.getSalary(), req.getPayDay(), req.getStatus());
-            return ResponseEntity.ok("✅ Updated salary for userId=" + userId);
+            return ResponseEntity.ok("Updated salary for userId=" + userId);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("❌ Error: " + e.getMessage());
+            return ResponseEntity.badRequest().body("Error: " + e.getMessage());
         }
     }
 
@@ -57,9 +57,9 @@ public class PayrollController {
                     req.getPeriodLabel(),
                     "MANUAL"
             );
-            return ResponseEntity.ok(ok ? "✅ PAID" : "❌ FAILED");
+            return ResponseEntity.ok(ok ? "PAID" : "FAILED");
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("❌ Payroll failed: " + e.getMessage());
+            return ResponseEntity.badRequest().body("Payroll failed: " + e.getMessage());
         }
     }
 
@@ -70,9 +70,9 @@ public class PayrollController {
     public ResponseEntity<?> runAuto() {
         try {
             int count = payrollService.processMonthlySalaryAuto();
-            return ResponseEntity.ok("✅ Auto payroll done for " + count + " staff(s)");
+            return ResponseEntity.ok("Auto payroll done for " + count + " staff(s)");
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("❌ Auto payroll error: " + e.getMessage());
+            return ResponseEntity.badRequest().body("Auto payroll error: " + e.getMessage());
         }
     }
 

@@ -75,7 +75,7 @@ public class WalletController {
             return ResponseEntity.status(success ? 200 : 400).body(response);
         } catch (Exception e) {
             response.put("success", false);
-            response.put("message", "❌ Lỗi thanh toán bằng ví EV: " + e.getMessage());
+            response.put("message", "Lỗi thanh toán bằng ví EV: " + e.getMessage());
             return ResponseEntity.badRequest().body(response);
         }
     }

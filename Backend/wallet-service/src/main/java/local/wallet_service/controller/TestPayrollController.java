@@ -14,6 +14,6 @@ public class TestPayrollController {
     @PostMapping("/payroll/run")
     public String runPayrollManually() {
         int count = payrollService.processMonthlySalaryAuto();
-        return "✅ Đã xử lý trả lương cho " + count + " nhân viên.";
+        return "Đã xử lý trả lương cho " + count + " nhân viên.";
     }
 }
