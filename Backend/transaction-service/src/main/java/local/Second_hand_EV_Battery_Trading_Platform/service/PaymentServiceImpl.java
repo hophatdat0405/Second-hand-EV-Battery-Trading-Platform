@@ -227,7 +227,8 @@ public class PaymentServiceImpl implements PaymentService {
                 p.getTransactionId(),
                 "EVWALLET",
                 request.getUserId(),
-                items
+                items,
+                request.getCartIds()
         );
     }
 
@@ -345,7 +346,8 @@ public class PaymentServiceImpl implements PaymentService {
                         transactionId,
                         method,
                         userId, // ID người mua
-                        items   // Danh sách item vừa lấy
+                        items,   // Danh sách item vừa lấy
+                        p.getCartIdList()
                     );
                 }
             }
@@ -647,17 +649,19 @@ public class PaymentServiceImpl implements PaymentService {
             String transactionId,
             String method,
             Long buyerId, // Đây là 'userId' từ request
-            List<Map<String, Object>> items
+            List<Map<String, Object>> items,
+            List<Long> paidCartIds
     ) {
-        // 1. Gửi event đến cart-service để xóa giỏ hàng người mua
+        // 1. Gửi event đến cart-service để xóa ĐÚNG CÁC ITEM ĐÃ MUA
         try {
-            Map<String, Object> cartEvent = Map.of(
-                "event", "order.paid",
-                "transactionId", transactionId,
-                "userId", buyerId, // ID người mua
-                "method", method,
-                "time", LocalDateTime.now().toString()
-            );
+            Map<String, Object> cartEvent = new HashMap<>(); // Dùng HashMap để dễ put
+            cartEvent.put("event", "order.paid");
+            cartEvent.put("transactionId", transactionId);
+            cartEvent.put("userId", buyerId);
+            cartEvent.put("cartIds", paidCartIds); // 🟢 QUAN TRỌNG: Gửi danh sách ID cần xóa
+            cartEvent.put("method", method);
+            cartEvent.put("time", LocalDateTime.now().toString());
+
             mqPublisher.publish("cart.order.paid", cartEvent);
             log.info("🧾 [Cart] Published cart.order.paid event -> {}", cartEvent);
         } catch (Exception e) {
