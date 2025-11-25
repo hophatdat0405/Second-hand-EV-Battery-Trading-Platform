@@ -14,4 +14,7 @@ public interface PurchaseRepository extends JpaRepository<Purchase, Long> {
 
     Optional<Purchase> findByTransactionId(String transactionId);
     boolean existsByTransactionId(String transactionId);
+
+    //Tìm đơn hàng theo Product ID
+    Optional<Purchase> findByProductId(Long productId);
 }
