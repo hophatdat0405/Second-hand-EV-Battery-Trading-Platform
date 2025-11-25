@@ -1,4 +1,4 @@
-// File: src/main/java/edu/uth/chat_service/Model/ChatMessage.java
+
 package edu.uth.chat_service.Model;
 
 import java.util.Date;

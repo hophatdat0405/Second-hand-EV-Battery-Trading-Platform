@@ -16,13 +16,13 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .csrf(csrf -> csrf.disable()) // Tắt CSRF
-            .cors(Customizer.withDefaults()) // ✅ Kích hoạt bean 'corsConfigurationSource' từ WebConfig
+            .cors(Customizer.withDefaults()) //  Kích hoạt bean 'corsConfigurationSource' từ WebConfig
             
             // Phân quyền request
             .authorizeHttpRequests(auth -> auth
                 // Mở quyền cho các đường dẫn đặc biệt của Chat Service
                 .requestMatchers("/ws/**").permitAll()       // Cho phép kết nối WebSocket
-                .requestMatchers("/uploads/**").permitAll()  // Cho phép truy cập file ảnh/video
+                .requestMatchers("/chat-files/**").permitAll()  // Cho phép truy cập file ảnh/video
                 
                 // Mở quyền cho API (giống file mẫu của bạn)
                 .requestMatchers("/api/**").permitAll() 

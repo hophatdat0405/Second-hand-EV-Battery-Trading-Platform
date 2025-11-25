@@ -1,4 +1,4 @@
-// File: src/main/java/edu/uth/chat_service/repository/BlockUserRepository.java
+
 package edu.uth.chat_service.Repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;

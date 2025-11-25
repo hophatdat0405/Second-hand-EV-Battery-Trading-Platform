@@ -46,12 +46,14 @@ public class WebConfig implements WebMvcConfigurer {
 
     /**
      * Cấu hình này phục vụ file tĩnh (ảnh, video) từ thư mục /uploads
-     * (Giống file WebConfig chúng ta đã làm)
+     * 
      */
-    @Override
+  @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        // Map đường dẫn URL /uploads/** tới thư mục vật lý "uploads/"
-        registry.addResourceHandler("/uploads/**")
+        // THAY ĐỔI: Đổi đường dẫn web thành "/chat-files/**"
+        // Đường dẫn file system "file:uploads/" vẫn giữ nguyên
+        // vì nó trỏ đến thư mục /app/uploads bên trong container
+        registry.addResourceHandler("/chat-files/**") 
                 .addResourceLocations("file:uploads/");
     }
 }

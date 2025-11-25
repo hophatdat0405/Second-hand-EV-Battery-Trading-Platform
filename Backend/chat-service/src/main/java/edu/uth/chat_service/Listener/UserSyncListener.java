@@ -23,7 +23,7 @@ public class UserSyncListener {
     @Autowired private CacheManager cacheManager;
 
     @RabbitListener(queues = "${app.rabbitmq.user.queue}")
-    @Transactional // Thêm Transactional
+    @Transactional 
     public void syncUser(UserEventDTO event) {
         log.info("📥 [RabbitMQ] Nhận User update: ID={}, Name={}", event.getId(), event.getName());
         
@@ -45,7 +45,7 @@ public class UserSyncListener {
             @Override
             public void afterCommit() {
                 cacheManager.getCache("chat_users").evictIfPresent(event.getId());
-                log.info("✅ Evicted user cache for ID: {}", event.getId());
+                log.info(" Evicted user cache for ID: {}", event.getId());
             }
         });
     }

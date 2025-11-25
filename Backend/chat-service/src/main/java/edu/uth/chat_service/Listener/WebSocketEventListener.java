@@ -36,7 +36,7 @@ public class WebSocketEventListener {
                     // Xóa cache ngay lập tức (vì đây không phải transaction phức tạp)
                     // Để lần sau gọi API status sẽ lấy được trạng thái mới (Offline)
                     cacheManager.getCache("chat_users").evictIfPresent(userId);
-                    System.out.println("✅ [WebSocket] Disconnect & Evicted Cache for User: " + userId);
+                    System.out.println(" [WebSocket] Disconnect & Evicted Cache for User: " + userId);
                 });
             }
         }

@@ -1,4 +1,4 @@
-// File: src/main/java/edu/uth/chat_service/Config/WebSocketConfig.java
+
 package edu.uth.chat_service.Config;
 
 import java.util.Map;
@@ -37,9 +37,9 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                             
                             if (userId != null) {
                                 attributes.put("userId", Long.valueOf(userId));
-                                System.out.println("✅ [WebSocket] Đã lưu UserID " + userId + " vào Session.");
+                                System.out.println(" [WebSocket] Đã lưu UserID " + userId + " vào Session.");
                             } else {
-                                System.err.println("⚠️ [WebSocket] Không tìm thấy UserID trong URL!");
+                                System.err.println(" [WebSocket] Không tìm thấy UserID trong URL!");
                             }
                         }
                         return true;

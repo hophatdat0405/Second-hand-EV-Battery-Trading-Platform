@@ -43,7 +43,7 @@ public class FileUploadController {
 
             // Trả về đường dẫn truy cập ảnh
             // Lưu ý: Cần cấu hình WebConfig để mở đường dẫn này
-            String fileUrl = "/uploads/" + fileName;
+            String fileUrl = "/chat-files/" + fileName;
             return ResponseEntity.ok(fileUrl);
 
         } catch (IOException e) {

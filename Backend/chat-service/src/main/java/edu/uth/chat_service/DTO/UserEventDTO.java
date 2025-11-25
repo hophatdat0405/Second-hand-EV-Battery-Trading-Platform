@@ -9,7 +9,7 @@ import lombok.Data;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class UserEventDTO {
     
-    // ✅ THÊM @JsonAlias: Để nếu bên kia gửi "userId" thì nó vẫn map vào "id"
+    //  @JsonAlias: Để nếu bên kia gửi "userId" thì nó vẫn map vào "id"
     @JsonAlias("userId") 
     private Long id;    
     

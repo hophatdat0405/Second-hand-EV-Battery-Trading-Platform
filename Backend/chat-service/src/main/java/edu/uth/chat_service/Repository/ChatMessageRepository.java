@@ -54,11 +54,6 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> 
     """, nativeQuery = true)
     List<ChatMessage> findRecentConversations(@Param("userId") Long userId);
 
-    // [MỚI] Đếm tổng số tin nhắn chưa đọc của user này
+    // Đếm tổng số tin nhắn chưa đọc của user này
     Long countByRecipientIdAndIsReadFalse(Long recipientId);
-
-    @Modifying
-    @Transactional
-    @Query("UPDATE ChatMessage m SET m.isRead = true WHERE m.recipientId = :userId AND m.senderId = :partnerId AND m.isRead = false")
-    int markAsReadByPartner(@Param("userId") Long userId, @Param("partnerId") Long partnerId);
 }

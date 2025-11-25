@@ -17,9 +17,9 @@ public class FileStorageService {
         if (fileUrl == null || fileUrl.isEmpty()) return;
 
         try {
-            // fileUrl thường có dạng "/uploads/filename.jpg"
-            // Cần cắt bỏ phần "/uploads/" để lấy tên file gốc
-            String fileName = fileUrl.replace("/uploads/", "");
+            //  SỬA LỖI: Không hard-code "/uploads/".
+           
+            String fileName = fileUrl.substring(fileUrl.lastIndexOf("/") + 1);
             
             Path file = rootLocation.resolve(fileName);
             

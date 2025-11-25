@@ -220,31 +220,30 @@ public class ChatController {
     @GetMapping("/api/chat/user-status/{id}")
     public ResponseEntity<?> status(@PathVariable Long id) { return ResponseEntity.of(chatUserRepo.findById(id)); }
     
-   // File: ChatController.java (Thay thế phương thức read() cũ)
-
-    @PostMapping("/api/chat/mark-read")
+@PostMapping("/api/chat/mark-read")
     public ResponseEntity<?> read(@RequestParam Long userId, @RequestParam Long partnerId) {
-        
-        // [TỐI ƯU] Chỉ gọi 1 câu lệnh UPDATE thay vì 1 vòng lặp
-        int updatedCount = chatMessageRepository.markAsReadByPartner(userId, partnerId);
-
-        // Chỉ gửi sự kiện WebSocket nếu thực sự có tin nhắn được cập nhật
-        if (updatedCount > 0) { 
-            Map<String,Object> r=new HashMap<>(); 
-            r.put("type", "READ_RECEIPT"); 
-            r.put("readerId", userId); 
+        List<ChatMessage> l = chatMessageRepository.findUnreadMessages(userId, partnerId);
+        if (!l.isEmpty()) {
+            for (ChatMessage m : l) {
+                m.setRead(true);
+                chatMessageRepository.save(m);
+            }
+            
+            Map<String, Object> r = new HashMap<>();
+            r.put("type", "READ_RECEIPT");
+            r.put("readerId", userId);
             r.put("partnerId", partnerId);
 
-            // 1. Gửi cho người kia (để họ biết bạn đã xem)
-            simpMessagingTemplate.convertAndSend("/queue/messages/" + partnerId, r); 
+            // 1. Báo cho người gửi biết (để hiện "Đã xem" bên khung chat của họ) - GIỮ NGUYÊN
+            simpMessagingTemplate.convertAndSend("/queue/messages/" + partnerId, r);
             
-            // 2. [FIX] Gửi cho chính mình
-            // (để các tab khác, vd: badge ở header, biết và cập nhật)
-            simpMessagingTemplate.convertAndSend("/queue/messages/" + userId, r); 
+            // 2.  Báo cho chính người đọc (để Badge của họ tự giảm số xuống)
+            // Logic: Khi nhận được tin có type="READ_RECEIPT", file chat-badge.js sẽ tự fetch lại số lượng.
+            simpMessagingTemplate.convertAndSend("/queue/messages/" + userId, r);
         }
         return ResponseEntity.ok("Read");
     }
-    
+
     @GetMapping("/api/chat/unread-count/{userId}")
     public ResponseEntity<Long> getUnreadMsgCount(@PathVariable Long userId) {
         long count = chatMessageRepository.countByRecipientIdAndIsReadFalse(userId);
