@@ -7,6 +7,7 @@ import numpy as np
 from datetime import datetime
 import sys
 import traceback
+import os  
 
 # --- CÁC BIẾN TOÀN CỤC VÀ LOGIC TỪ APP.PY ---
 CURRENT_YEAR = datetime.now().year
@@ -63,8 +64,13 @@ def calculate_wear_score(row):
     # Dùng .get() để an toàn khi key không tồn tại
     productType = row.get("productType")
     if productType in ["bike", "motorbike"]:
-        mileage = max(row.get('mileage', 0), 0)
-        cycles = max(row.get('chargeCycles', 0), 0)
+        
+        # === SỬA LỖI TẠI ĐÂY ===
+        # Dùng `or 0` để chuyển None thành 0 trước khi gọi hàm max()
+        mileage = max(row.get('mileage') or 0, 0)
+        cycles = max(row.get('chargeCycles') or 0, 0)
+        # ======================
+
         mileage_factor = 1 / np.log1p(mileage) if mileage > 0 else 1
         cycles_factor = 1 / np.log1p(cycles) if cycles > 0 else 1
         return (mileage_factor * 0.6 + cycles_factor * 0.4)
@@ -216,19 +222,23 @@ def on_request(ch, method, properties, body):
 # --- HÀM MAIN (ĐÃ SỬA) ---
 def main():
     # 1. Tải model trước
-    # SỬA ĐỔI: Kiểm tra xem có tải được BẤT KỲ model nào không
     if not load_models():
         print("❌ Không tải được BẤT KỲ mô hình nào. Service không thể chạy. Thoát.")
         sys.exit(1)
     
-    # SỬA ĐỔI: In thông báo thành công nếu có ít nhất 1 model
     print(f"✅ Đã tải thành công {len(LOADED_MODELS)}/{len(set(MODEL_MAP.values()))} mô hình.")
     print(f"🚀 AI Service (MQ Consumer) đã sẵn sàng (năm {CURRENT_YEAR})")
 
     # 2. Thiết lập kết nối
     connection = None
     try:
-        connection = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
+        # === SỬA LỖI TẠI ĐÂY ===
+        # Lấy host từ biến môi trường do Docker cung cấp
+        # Nếu không có, mặc định là 'localhost' (dùng khi chạy ngoài Docker)
+        rabbitmq_host = os.environ.get('RABBITMQ_HOST', 'localhost')
+        # ======================
+
+        connection = pika.BlockingConnection(pika.ConnectionParameters(host=rabbitmq_host))
         channel = connection.channel()
 
         # Khai báo Queue, THÊM durable=True để khớp với Java
@@ -240,12 +250,17 @@ def main():
         # Đặt hàm on_request làm callback
         channel.basic_consume(queue=AI_REQUEST_QUEUE, on_message_callback=on_request)
 
-        print(f" [x] Awaiting RPC requests on '{AI_REQUEST_QUEUE}'")
+        # === THÊM PRINT ĐỂ DEBUG ===
+        print(f" [x] Awaiting RPC requests on '{AI_REQUEST_QUEUE}' (Connected to: {rabbitmq_host})")
+        # ==========================
+
         channel.start_consuming()
 
     except pika.exceptions.AMQPConnectionError as e:
-        print(f"Error connecting to RabbitMQ: {e}")
-        print("Please ensure RabbitMQ is running on localhost:5672")
+        # === THÊM PRINT ĐỂ DEBUG ===
+        print(f"Error connecting to RabbitMQ at '{rabbitmq_host}': {e}")
+        print(f"Please ensure RabbitMQ is running and accessible at {rabbitmq_host}")
+        # ==========================
     except KeyboardInterrupt:
         print('Interrupted')
         if connection:

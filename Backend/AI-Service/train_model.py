@@ -12,10 +12,10 @@ from sklearn.metrics import r2_score, mean_absolute_error
 import joblib
 
 # ===============================
-# 1️⃣ Cấu hình chung
+# 1️ Cấu hình chung
 # ===============================
 CURRENT_YEAR = datetime.now().year
-print("📂 Đang đọc dữ liệu lịch sử...")
+print(" Đang đọc dữ liệu lịch sử...")
 
 try:
     data = pd.read_csv("historical_listings.csv")
@@ -25,7 +25,7 @@ except FileNotFoundError:
     exit()
 
 # ===============================
-# 2️⃣ Làm sạch dữ liệu
+# 2️ Làm sạch dữ liệu
 # ===============================
 print("🧠 Đang xử lý & làm sạch dữ liệu...")
 
@@ -44,7 +44,7 @@ data = data.dropna(subset=["FINAL_SALE_PRICE"])
 print(f"✅ Đã loại bỏ {target_rows_before - len(data)} dòng thiếu FINAL_SALE_PRICE.")
 
 # ===============================
-# 3️⃣ Hàm tiện ích trích xuất đặc trưng
+# 3️ Hàm tiện ích trích xuất đặc trưng
 # ===============================
 def extract_capacity_value(capacity_str):
     """Chuyển đổi dung lượng pin (kWh / Ah) sang số kWh chuẩn."""
@@ -85,7 +85,7 @@ def calculate_wear_score(row):
     return 1
 
 # ===============================
-# 4️⃣ Feature Engineering
+# 4️ Feature Engineering
 # ===============================
 data["batteryCapacity_numeric"] = data["batteryCapacity"].apply(extract_capacity_value)
 data["batteryLifespan_months"] = data["batteryLifespan"].apply(extract_lifespan_months)
@@ -105,17 +105,17 @@ data["age"] = data["yearOfManufacture_numeric"].apply(
 )
 data["wear_score"] = data.apply(calculate_wear_score, axis=1)
 
-# ⭐ CẢI TIẾN 1: Pin Value Density
+# CẢI TIẾN 1: Pin Value Density
 data['maxSpeed_safe'] = data['maxSpeed'].replace(0, 1e-6) 
 data["pin_value_per_speed"] = data["batteryCapacity_numeric"] / data['maxSpeed_safe']
 
-# ⭐ CẢI TIẾN 2: Brand Value Score (Mean Encoding)
+#  CẢI TIẾN 2: Brand Value Score (Mean Encoding)
 data['log_price'] = np.log1p(data['FINAL_SALE_PRICE'])
 brand_mean_prices = data.groupby('brand')['log_price'].mean()
 data['brand_value_score'] = data['brand'].map(brand_mean_prices)
 
 # ===============================
-# 5️⃣ Khởi tạo Pipeline & Mô hình
+# 5️ Khởi tạo Pipeline & Mô hình
 # ===============================
 numeric_features = [
     "mileage", "rangePerCharge", "chargeCycles", "batteryCapacity_numeric",
@@ -157,7 +157,7 @@ def create_model_pipeline():
     ])
 
 # ===============================
-# 6️⃣ Phân mảnh Dữ liệu & Huấn luyện
+# 6️ Phân mảnh Dữ liệu & Huấn luyện
 # ===============================
 # (Đã gộp 3 cụm CAR thành 2 cụm)
 MODEL_CONFIG = {
@@ -165,7 +165,7 @@ MODEL_CONFIG = {
     'motorbike': {'filter': ['motorbike'], 'filename': 'pricing_model_motorbike.pkl'},
     'battery': {'filter': ['battery'], 'filename': 'pricing_model_battery.pkl'},
     
-    # ⭐ ĐÃ SỬA: 2 SUB-SEGMENT MỚI CHO CAR
+    #  2 SUB-SEGMENT MỚI CHO CAR
     
             'car_low': {
                 'filter': lambda df: (df['productType'] == 'car') & (df[TARGET] <= 600_000_000),
@@ -191,7 +191,7 @@ for name, config in MODEL_CONFIG.items():
     
     if callable(config['filter']):
         # Xử lý filter lambda cho CAR
-        # ⭐⭐⭐ ĐÂY LÀ DÒNG ĐÃ SỬA LỖI ⭐⭐⭐
+   
         data_segment = data[config['filter'](data)].copy()
     else:
         # Xử lý filter list thông thường
@@ -228,7 +228,7 @@ for name, config in MODEL_CONFIG.items():
     print(f"✅ Đã lưu mô hình '{name}' ({model_file}).")
 
 # ===============================
-# 7️⃣ Tổng kết
+# 7️ Tổng kết
 # ===============================
 print("\n📊 === TỔNG KẾT KẾT QUẢ CÁC MÔ HÌNH SAU KHI GỘP CỤM 2 CAR ===")
 for name, res in all_results.items():
