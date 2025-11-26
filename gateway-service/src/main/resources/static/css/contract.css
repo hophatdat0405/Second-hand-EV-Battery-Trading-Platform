@@ -31,17 +31,17 @@ body {
 .page {
   font-family: "Times New Roman", Times, serif !important; /* Giữ nguyên font hợp đồng */
   width: 210mm;
-  min-height: 297mm;
+  min-height: 296mm;
   background: #fff;
-  margin: 40px auto; /* Tăng margin để thoáng hơn */
-  padding: 25mm 20mm 20mm 25mm;
+  margin: 0 auto; /* Tăng margin để thoáng hơn */
+  padding: 10mm 5mm 5mm 10mm;
   
   /* Nâng cấp: Bỏ viền đơn điệu, thay bằng bóng đổ 3D */
   border: none;
   box-shadow: var(--shadow-paper);
   
-  line-height: 1.6; /* Tăng nhẹ dòng để dễ đọc hơn */
-  font-size: 14pt;
+  line-height: 1.5; /* Tăng nhẹ dòng để dễ đọc hơn */
+  font-size: 11pt;
   position: relative;
   box-sizing: border-box;
 }
@@ -57,7 +57,7 @@ body {
 
 .header p {
   margin: 0;
-  font-size: 15pt;
+  font-size: 12pt;
   font-weight: 700;
   /* ✅ QUAN TRỌNG: Dùng !important để ép buộc căn giữa, 
      tránh bị ảnh hưởng bởi thuộc tính justify ở dưới */
@@ -72,7 +72,7 @@ body {
 }
 
 .header .title {
-  font-size: 18pt; /* To hơn một chút để nhấn mạnh */
+  font-size: 15pt; /* To hơn một chút để nhấn mạnh */
   font-weight: 800;
   text-transform: uppercase;
   margin-top: 20px;
@@ -89,7 +89,7 @@ body {
   margin-top: 20px;
   margin-bottom: 10px;
   text-transform: uppercase;
-  font-size: 14pt;
+  font-size: 12pt;
 }
 
 .page p {
@@ -105,8 +105,8 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: stretch;
-  margin-top: 50px;
-  margin-bottom: 30px;
+  margin-top: 30px;
+  margin-bottom: 15px;
   line-height: 1.4;
 }
 
@@ -130,7 +130,7 @@ body {
 
 /* Dấu mộc - Giữ nguyên logic */
 .seal {
-  width: 280px; /* Tinh chỉnh lại chút cho gọn */
+  width: 180px; /* Tinh chỉnh lại chút cho gọn */
   height: auto;
   display: block;
   max-width: 95%;
@@ -156,7 +156,7 @@ body {
 /* Canvas: Làm cho giống vùng ký điện tử chuyên nghiệp */
 #signCanvas {
   border: 2px dashed var(--border-canvas); /* Viền nét đứt */
-  background: #fcfcfc; /* Nền hơi khác màu giấy tí xíu */
+  background: #ffffff; /* Nền hơi khác màu giấy tí xíu */
   border-radius: 8px;
   width: 300px;
   height: 200px;
@@ -200,9 +200,9 @@ button.ghost:hover {
 /* Ngày ký */
 .signed-date {
   text-align: right;
-  font-size: 13pt;
+  font-size: 11pt;
   font-style: italic;
-  margin-top: 20px;
+  margin-top: 5px;
   margin-right: 10px;
   color: #333;
 }
@@ -246,30 +246,60 @@ button.ghost:hover {
 /* =========================================
    9. CHẾ ĐỘ IN ẤN (PRINT) - QUAN TRỌNG
    ========================================= */
+
+/* Không cho chia đôi các block khi sang trang */
+.signature,
+.sign-area,
+.seal,
+.signed-date,
+.header,
+.section-title,
+.page p {
+  page-break-inside: avoid !important;
+}
+
+
 @media print {
-  body {
-    background: none;
-  }
-  
-  .page {
+
+  /* Giữ chuẩn A4 và bỏ margin mặc định của Chrome */
+  @page {
+    size: A4;
     margin: 0;
-    width: 100%;
-    min-height: auto;
-    box-shadow: none; /* Bỏ bóng đổ khi in */
-    border: none;
-    padding: 0;
   }
 
-  /* Ẩn các nút bấm khi in ra PDF */
+  body {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: none !important;
+  }
+
+  .page {
+    width: 210mm !important;
+    min-height: 0 !important;
+    height: auto !important;
+    margin: 0 auto !important;
+
+    /* Giữ padding A4 chuẩn của bạn */
+    padding: 10mm 5mm 5mm 10mm !important;
+
+    box-shadow: none !important;
+    border: none !important;
+
+    page-break-after: auto !important;
+
+    page-break-inside: avoid !important;
+  }
+
+  /* Ẩn các nút bấm khi in */
   .toolbar, 
   .clear-btn-wrapper, 
   button.ghost {
     display: none !important;
   }
 
-  /* Ẩn viền khung ký khi in (chỉ để lại chữ ký) */
+  /* Canvas chỉ in nét ký, không in khung */
   #signCanvas {
-    border: none;
-    background: transparent;
+    border: none !important;
+    background: transparent !important;
   }
 }
