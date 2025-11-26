@@ -153,14 +153,43 @@ document.addEventListener("DOMContentLoaded", async function () {
       clearButton.style.display = "none";
 
       // Chụp hợp đồng
-      const canvasPDF = await html2canvas(page, { scale: PDF_SCALE, useCORS: true, logging: false });
+      const A4_WIDTH = 210;      // mm
+      const A4_HEIGHT = 297;     // mm
+
+      // Chụp trang
+      const canvasPDF = await html2canvas(page, {
+          scale: 2,      // scale thấp để tránh bị nén ngang
+          useCORS: true,
+          logging: false,
+      });
+
+      // Chuyển ảnh
       const imgData = canvasPDF.toDataURL("image/jpeg", 1.0);
 
-      // Sinh file PDF
+      // Tính tỷ lệ khớp A4
+      const imgWidthPx = canvasPDF.width;
+      const imgHeightPx = canvasPDF.height;
+      const ratio = imgHeightPx / imgWidthPx;
+
       const pdf = new jsPDF("p", "mm", "a4");
-      const imgWidth = 210;
-      const imgHeight = (canvasPDF.height * imgWidth) / canvasPDF.width;
-      pdf.addImage(imgData, "JPEG", 0, 0, imgWidth, Math.min(297, imgHeight));
+
+      const pdfWidth = A4_WIDTH;
+      const pdfHeight = pdfWidth * ratio;
+
+      // Nếu dài hơn 1 trang → chia trang tự động
+      let heightLeft = pdfHeight;
+      let position = 0;
+
+      pdf.addImage(imgData, "JPEG", 0, position, pdfWidth, pdfHeight);
+      heightLeft -= A4_HEIGHT;
+
+      while (heightLeft > 1) {
+          pdf.addPage();
+          position = heightLeft - pdfHeight;
+          pdf.addImage(imgData, "JPEG", 0, position, pdfWidth, pdfHeight);
+          heightLeft -= A4_HEIGHT;
+      }
+
 
       // Chuyển PDF sang base64
       const pdfBlob = pdf.output("blob");
