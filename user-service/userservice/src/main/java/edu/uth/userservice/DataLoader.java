@@ -1,18 +1,19 @@
-// File: edu.uth.userservice.DataLoader.java
-
 package edu.uth.userservice;
 
 import edu.uth.userservice.model.Role;
 import edu.uth.userservice.model.User;
 import edu.uth.userservice.repository.RoleRepository;
 import edu.uth.userservice.repository.UserRepository;
+import org.springframework.amqp.rabbit.core.RabbitTemplate; // ✅ 1. Thêm import này
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 @Component
@@ -26,6 +27,9 @@ public class DataLoader implements CommandLineRunner {
 
     @Autowired
     private PasswordEncoder encoder;
+
+    @Autowired
+    private RabbitTemplate rabbitTemplate; // ✅ 2. Inject RabbitTemplate
 
     // Helper để tạo role nếu chưa có
     @Transactional
@@ -47,10 +51,36 @@ public class DataLoader implements CommandLineRunner {
             u.setPassword(encoder.encode(rawPassword));
             u.setAccountStatus(accountStatus);
             u.setRoles(roles);
-            userRepository.save(u);
-            System.out.println("✅ User created: " + email + " (roles=" + roles.stream().map(Role::getName).toList() + ")");
+            
+            // Lưu user và lấy lại đối tượng đã lưu (để có ID)
+            User savedUser = userRepository.save(u);
+            System.out.println("✅ User created: " + email + " (ID: " + savedUser.getUserId() + ")");
+
+            // ✅ 3. Kiểm tra nếu là STAFF thì bắn Event sang Wallet Service
+            boolean isStaff = roles.stream().anyMatch(r -> r.getName().equalsIgnoreCase("STAFF"));
+            if (isStaff) {
+                sendStaffCreatedEvent(savedUser.getUserId().longValue());
+            }
+
         } else {
             System.out.println("ℹ️ User already exists: " + email);
+        }
+    }
+
+    // ✅ 4. Hàm gửi event thủ công (Giả lập logic của UserService)
+    private void sendStaffCreatedEvent(Long userId) {
+        try {
+            Map<String, Object> event = new HashMap<>();
+            event.put("userId", userId);
+            event.put("role", "STAFF");
+            event.put("eventType", "ADD"); // Báo là thêm quyền STAFF
+
+            // Gửi vào Exchange "ev.exchange" với Routing Key "user.role.updated"
+            rabbitTemplate.convertAndSend("ev.exchange", "user.role.updated", event);
+            
+            System.out.println("📤 [RabbitMQ] Đã gửi sự kiện tạo STAFF cho userId: " + userId);
+        } catch (Exception e) {
+            System.err.println("❌ [RabbitMQ] Lỗi khi gửi sự kiện: " + e.getMessage());
         }
     }
 
@@ -68,11 +98,11 @@ public class DataLoader implements CommandLineRunner {
             User sa = new User();
             sa.setName("Super Admin");
             sa.setEmail("superadmin@example.com");
-            sa.setPassword(encoder.encode("superadmin123")); // Hãy đổi mật khẩu mặc định sau khi deploy
+            sa.setPassword(encoder.encode("superadmin123")); 
             sa.setAccountStatus("active");
             sa.setRoles(Set.of(userRole, adminRole, superAdminRole));
             userRepository.save(sa);
-System.out.println("✅ Super Admin user created");
+            System.out.println("✅ Super Admin user created");
         }
 
         // 3. Tạo Admin thường (nếu chưa có)
@@ -80,7 +110,7 @@ System.out.println("✅ Super Admin user created");
             User u = new User();
             u.setName("Admin");
             u.setEmail("admin@example.com");
-            u.setPassword(encoder.encode("admin123")); // Hãy đổi mật khẩu mặc định sau khi deploy
+            u.setPassword(encoder.encode("admin123")); 
             u.setAccountStatus("active");
             u.setRoles(Set.of(userRole, adminRole));
             userRepository.save(u);
@@ -100,6 +130,7 @@ System.out.println("✅ Super Admin user created");
         }
 
         // 5. Tạo 3 tài khoản có quyền STAFF (kèm USER)
+        // 🔥 LƯU Ý: Những user này sẽ kích hoạt hàm sendStaffCreatedEvent ở trên
         List<String[]> staffs = List.of(
                 new String[]{"Staff One", "staff1@example.com", "staff1pass"},
                 new String[]{"Staff Two", "staff2@example.com", "staff2pass"},
